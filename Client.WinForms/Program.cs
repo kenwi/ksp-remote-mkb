@@ -5,7 +5,7 @@ using Client.WinForms;
 var builder = Host.CreateDefaultBuilder()
     .ConfigureServices((context, services) =>
     {
-        services.AddScoped<ClientForm>();
+        services.AddSingleton<ClientForm>();
     })
     .Build();
 using var scope = builder.Services.CreateScope();

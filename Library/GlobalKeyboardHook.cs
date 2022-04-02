@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-class GlobalKeyboardHookEventArgs : HandledEventArgs
+public class GlobalKeyboardHookEventArgs : HandledEventArgs
 {
     public GlobalKeyboardHook.KeyboardState KeyboardState { get; private set; }
     public GlobalKeyboardHook.LowLevelKeyboardInputEvent KeyboardData { get; private set; }
@@ -17,7 +17,7 @@ class GlobalKeyboardHookEventArgs : HandledEventArgs
 }
 
 //Based on https://gist.github.com/Stasonix
-class GlobalKeyboardHook : IDisposable
+public class GlobalKeyboardHook : IDisposable
 {
     public event EventHandler<GlobalKeyboardHookEventArgs>? KeyboardPressed;
 
