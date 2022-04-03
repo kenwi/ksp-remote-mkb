@@ -4,18 +4,33 @@ option csharp_namespace = "Server";
 
 package greet;
 
-// The greeting service definition.
 service Greeter {
-  // Sends a greeting
-  rpc SayHello (HelloRequest) returns (HelloReply);
+  rpc SendKeyboardEvent (KeyboardEvent) returns (Empty);
+  rpc SendMouseEvent (MouseEvent) returns (Empty);
 }
 
-// The request message containing the user's name.
-message HelloRequest {
-  string name = 1;
+message Empty{
 }
 
-// The response message containing the greetings.
-message HelloReply {
-  string message = 1;
+message KeyboardEvent {
+  int32 key = 1;
+}
+
+message MouseMoveEvent {
+  int32 x = 1;
+  int32 y = 2;
+}
+
+enum EventType {
+  LEFTUP = 0;
+  LEFTDOWN = 1;
+  RIGHTUP = 2;
+  RIGHTDOWN = 3;
+  MOVE = 4;
+}
+
+message MouseEvent {
+  int32 x = 1;
+  int32 y = 2;
+  EventType type = 3;
 }

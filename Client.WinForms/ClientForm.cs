@@ -1,10 +1,15 @@
+using Grpc.Net.Client;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Server;
+using System.Text;
 
 namespace Client.WinForms
 {
-    public partial class ClientForm : Form, IHostedService
+    public partial class ClientForm : Form
     {
+        readonly GrpcChannel channel;
+        readonly Greeter.GreeterClient client;
         public ClientForm(ILogger<ClientForm> logger)
         {
             InitializeComponent();
@@ -13,19 +18,59 @@ namespace Client.WinForms
             {
                 if(args.KeyboardState == GlobalKeyboardHook.KeyboardState.KeyDown)
                 {
-                    MessageBox.Show($"Received Keyboard Event: {args.KeyboardState}");
+                    var builder = new StringBuilder($"Keyboard Code: {args.KeyboardData.VirtualCode}");
+                    label1.Text = builder.ToString();
                 }
             };
+
+            var rpcEndpoint = "https://localhost:7278";
+            channel = GrpcChannel.ForAddress(rpcEndpoint,
+                new GrpcChannelOptions
+                {
+                    HttpHandler = new HttpClientHandler
+                    {
+                        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                    }
+                });
+            client = new Greeter.GreeterClient(channel);
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        private void ClientForm_Click(object sender, EventArgs e)
         {
-            return Task.CompletedTask;
+            var mouse = e as MouseEventArgs;
+            if (mouse == null)
+                return;
+
+            var builder = new StringBuilder($"Original Coordinates: {mouse.X} {mouse.Y}");
+            label1.Text = builder.ToString();
+
+            client.SendMouseEvent(new MouseEvent()
+            {
+                X = mouse.X,
+                Y = mouse.Y,
+                Type = mouse.Button switch
+                {
+                    MouseButtons.Left => EventType.Leftdown,
+                    MouseButtons.Right => EventType.Rightdown,
+                    //MouseButtons.None => throw new NotImplementedException(),
+                    //MouseButtons.Middle => throw new NotImplementedException(),
+                    //MouseButtons.XButton1 => throw new NotImplementedException(),
+                    //MouseButtons.XButton2 => throw new NotImplementedException(),
+                    _ => throw new NotImplementedException(),
+                }
+            });
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
+        private void ClientForm_MouseMove(object sender, MouseEventArgs mouse)
         {
-            return Task.CompletedTask;
+            var builder = new StringBuilder($"Original Coordinates: {mouse.X} {mouse.Y}");
+            label2.Text = builder.ToString();
+            client.SendMouseEvent(new MouseEvent()
+            {
+                X = mouse.X,
+                Y = mouse.Y,
+                Type = EventType.Move
+            });
         }
     }
 }
