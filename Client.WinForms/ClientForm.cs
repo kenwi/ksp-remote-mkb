@@ -23,7 +23,7 @@ namespace Client.WinForms
                 }
             };
 
-            var rpcEndpoint = "https://localhost:7278";
+            var rpcEndpoint = "https://10.0.0.9:5000";
             channel = GrpcChannel.ForAddress(rpcEndpoint,
                 new GrpcChannelOptions
                 {
@@ -35,15 +35,32 @@ namespace Client.WinForms
             client = new Greeter.GreeterClient(channel);
         }
 
-        private void ClientForm_Click(object sender, EventArgs e)
+        private void ClientForm_DoubleClick(object sender, EventArgs e)
         {
-            var mouse = e as MouseEventArgs;
-            if (mouse == null)
+            if (e is not MouseEventArgs mouse)
                 return;
 
-            var builder = new StringBuilder($"Original Coordinates: {mouse.X} {mouse.Y}");
-            label1.Text = builder.ToString();
+            client.SendMouseEvent(new MouseEvent()
+            {
+                X = mouse.X,
+                Y = mouse.Y,
+                Type = EventType.Doubleclick
+            });
+        }
 
+        private void ClientForm_MouseMove(object sender, MouseEventArgs mouse)
+        {
+            label1.Text = $"Coordinates: {mouse.X} {mouse.Y}";
+            client.SendMouseEvent(new MouseEvent()
+            {
+                X = mouse.X,
+                Y = mouse.Y,
+                Type = EventType.Move
+            });
+        }
+
+        private void ClientForm_MouseDown(object sender, MouseEventArgs mouse)
+        {
             client.SendMouseEvent(new MouseEvent()
             {
                 X = mouse.X,
@@ -52,24 +69,23 @@ namespace Client.WinForms
                 {
                     MouseButtons.Left => EventType.Leftdown,
                     MouseButtons.Right => EventType.Rightdown,
-                    //MouseButtons.None => throw new NotImplementedException(),
-                    //MouseButtons.Middle => throw new NotImplementedException(),
-                    //MouseButtons.XButton1 => throw new NotImplementedException(),
-                    //MouseButtons.XButton2 => throw new NotImplementedException(),
-                    _ => throw new NotImplementedException(),
+                    _ => throw new NotImplementedException()
                 }
             });
         }
 
-        private void ClientForm_MouseMove(object sender, MouseEventArgs mouse)
+        private void ClientForm_MouseUp(object sender, MouseEventArgs mouse)
         {
-            var builder = new StringBuilder($"Original Coordinates: {mouse.X} {mouse.Y}");
-            label2.Text = builder.ToString();
             client.SendMouseEvent(new MouseEvent()
             {
                 X = mouse.X,
                 Y = mouse.Y,
-                Type = EventType.Move
+                Type = mouse.Button switch
+                {
+                    MouseButtons.Left => EventType.Leftup,
+                    MouseButtons.Right => EventType.Rightup,
+                    _ => throw new NotImplementedException()
+                }
             });
         }
     }
