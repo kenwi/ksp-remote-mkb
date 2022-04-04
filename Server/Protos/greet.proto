@@ -27,6 +27,7 @@ enum EventType {
   RIGHTUP = 2;
   RIGHTDOWN = 3;
   MOVE = 4;
+  DOUBLECLICK = 5;
 }
 
 message MouseEvent {
