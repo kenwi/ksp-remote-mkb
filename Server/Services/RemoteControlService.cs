@@ -62,9 +62,6 @@ namespace Server.Services
                 events = events.Hold(code);
             if(dir == EventType.Keyup)
                 events = events.Release(code);
-
-            Console.WriteLine($"{dir} {code}");
-
             events.Invoke();
             return Task.FromResult(empty);
         }
