@@ -50,8 +50,6 @@ namespace Server.Services
 
         public override Task<IdentificationResponse> Identify(Identification request, ServerCallContext context)
         {
-            var screenCapture = new ScreenCapture();
-            var screenData = screenCapture.CaptureScreen();
             return Task.FromResult(new IdentificationResponse() { Message = "m0b", Responsetype = IdentificationResponseType.Ok });
         }
 
