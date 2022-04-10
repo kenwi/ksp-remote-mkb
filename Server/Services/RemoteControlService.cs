@@ -71,27 +71,17 @@ namespace Server.Services
 
         public override Task<Empty> SendMouseEvent(MouseEvent request, ServerCallContext context)
         {
-            if (request.Type == EventType.Move)
-                events = events.MoveTo(request.X, request.Y);
-
-            if (request.Type == EventType.Doubleclick)
-                events = events.DoubleClick(ButtonCode.Left);
-
-            //if (request.Type == EventType.Leftdown)
-            //    events = events.Click(ButtonCode.Left);
-
-            if (request.Type == EventType.Leftdown)
-                events.Hold(ButtonCode.Left);
-
-            if (request.Type == EventType.Leftup)
-                events.Release(ButtonCode.Left);
-
-            if (request.Type == EventType.Rightdown)
-                events = events.Hold(ButtonCode.Right);
-
-            if (request.Type == EventType.Rightup)
-                events = events.Release(ButtonCode.Right);
-
+            events = request.Type switch
+            {
+                EventType.Leftup => events.Release(ButtonCode.Left),
+                EventType.Leftdown => events.Hold(ButtonCode.Left),
+                EventType.Rightup => events.Release(ButtonCode.Right),
+                EventType.Rightdown => events.Hold(ButtonCode.Right),
+                EventType.Move => events.MoveTo(request.X, request.Y),
+                EventType.Doubleclick => events.DoubleClick(ButtonCode.Left),
+                //EventType.Keydown => throw new NotImplementedException(),
+                //EventType.Keyup => throw new NotImplementedException(),
+            };
             events.Invoke();
             return Task.FromResult(empty);
         }
