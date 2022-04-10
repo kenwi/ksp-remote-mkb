@@ -11,7 +11,7 @@
 <PageTitle>Index</PageTitle>
 <img src="@Image64" width="1600" height="900" @onmousedown="@MouseClick" @onmouseup="@MouseUp" @onmousemove="@MouseMove" />
 
-@code 
+@code
 {
     Greeter.GreeterClient? client;
     static readonly MouseEvent outboundEvent = new();
@@ -20,6 +20,7 @@
     Resolution monitor = new();
     DateTime last = new();
     ScreenCapture sc = new();
+    float xmod = 0, ymod = 0;
 
     async void RunPeriodicImageUpdate()
     {
@@ -58,13 +59,18 @@
         base.OnInitialized();
     }
 
+    void CalculateRatio()
+    {
+        xmod = (float)monitor.X / 1600;
+        ymod = (float)monitor.Y / 900;
+    }
+
     protected async void MouseUp(MouseEventArgs e)
     {
         if ((DateTime.Now - last).Milliseconds < 100)
             return;
 
-        var xmod = (float)monitor.X / 1600;
-        var ymod = (float)monitor.Y / 900;
+        CalculateRatio();
         outboundEvent.X = (int)(e.ClientX * xmod) - 50;
         outboundEvent.Y = (int)(e.ClientY * ymod) - 25;
         outboundEvent.Type = EventType.Leftup;
@@ -77,8 +83,7 @@
         if ((DateTime.Now - last).Milliseconds < 100)
             return;
 
-        var xmod = (float)monitor.X / 1600;
-        var ymod = (float)monitor.Y / 900;
+        CalculateRatio();
         outboundEvent.X = (int)(e.ClientX * xmod) - 50;
         outboundEvent.Y = (int)(e.ClientY * ymod) - 25;
         outboundEvent.Type = EventType.Leftdown;
@@ -95,8 +100,7 @@
         if (client == null)
             return;
 
-        var xmod = (float)monitor.X / 1600;
-        var ymod = (float)monitor.Y / 900;
+        CalculateRatio();
         outboundEvent.X = (int)(e.ClientX * xmod) - 50;
         outboundEvent.Y = (int)(e.ClientY * ymod) - 25;
         outboundEvent.Type = EventType.Move;
