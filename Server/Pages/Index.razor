@@ -14,7 +14,7 @@
 @code
 {
     Greeter.GreeterClient? client;
-    static readonly MouseEvent outboundEvent = new();
+    MouseEvent? outboundEvent = new();
     protected string Image64 { get; set; } = string.Empty;
     Random rng = new Random();
     Resolution monitor = new();
@@ -69,42 +69,41 @@
     {
         if ((DateTime.Now - last).Milliseconds < 100)
             return;
+        if (outboundEvent == null || client == null)
+            return;
 
         CalculateRatio();
         outboundEvent.X = (int)(e.ClientX * xmod) - 50;
         outboundEvent.Y = (int)(e.ClientY * ymod) - 25;
         outboundEvent.Type = EventType.Leftup;
-        if (client != null && outboundEvent != null)
-            await client.SendMouseEventAsync(outboundEvent);
+        await client.SendMouseEventAsync(outboundEvent);
     }
 
     protected async void MouseClick(MouseEventArgs e)
     {
         if ((DateTime.Now - last).Milliseconds < 100)
             return;
+        if (outboundEvent == null || client == null)
+            return;
 
         CalculateRatio();
         outboundEvent.X = (int)(e.ClientX * xmod) - 50;
         outboundEvent.Y = (int)(e.ClientY * ymod) - 25;
         outboundEvent.Type = EventType.Leftdown;
-        if (client != null && outboundEvent != null)
-            await client.SendMouseEventAsync(outboundEvent);
+        await client.SendMouseEventAsync(outboundEvent);
     }
 
     protected async void MouseMove(MouseEventArgs e)
     {
         if ((DateTime.Now - last).Milliseconds < 10)
-        {
             return;
-        }
-        if (client == null)
+        if (outboundEvent == null || client == null)
             return;
 
         CalculateRatio();
         outboundEvent.X = (int)(e.ClientX * xmod) - 50;
         outboundEvent.Y = (int)(e.ClientY * ymod) - 25;
         outboundEvent.Type = EventType.Move;
-        if (client != null && outboundEvent != null)
-            await client.SendMouseEventAsync(outboundEvent);
+        await client.SendMouseEventAsync(outboundEvent);
     }
 }
