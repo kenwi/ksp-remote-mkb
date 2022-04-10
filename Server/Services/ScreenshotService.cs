@@ -22,7 +22,7 @@ namespace Server.Services
                 using var resized = new Bitmap(img, 1600, 900);
                 resized.Save(outStream, System.Drawing.Imaging.ImageFormat.Jpeg);
                 Image64 = "data:image/jpeg;base64," + Convert.ToBase64String(outStream.ToArray());
-                await Task.Delay(100);
+                await Task.Delay(100, stoppingToken);
             }
         }
     }
