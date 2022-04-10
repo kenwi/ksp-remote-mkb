@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Client.WinForms;
-using System.Diagnostics;
 
 var builder = Host.CreateDefaultBuilder()
     .ConfigureServices((context, services) =>

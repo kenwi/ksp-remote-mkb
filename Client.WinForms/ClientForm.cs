@@ -1,38 +1,60 @@
 using Grpc.Net.Client;
-using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Server;
-using System.Text;
 
 namespace Client.WinForms
 {
     public partial class ClientForm : Form
     {
-        readonly GrpcChannel channel;
-        readonly Greeter.GreeterClient client;
-        public ClientForm(ILogger<ClientForm> logger)
+        static readonly MouseEvent outboundEvent = new();
+        readonly Greeter.GreeterClient? client;
+        private readonly IServiceProvider provider;
+        Resolution serverGameResolution;
+        Resolution serverMonitorResolution;
+        float xmod = 0, ymod = 0;
+
+        public ClientForm(ILogger<ClientForm> logger, IServiceProvider provider)
         {
             InitializeComponent();
-            var hook = new GlobalKeyboardHook();
-            hook.KeyboardPressed += (sender, args) =>
-            {
-                if(args.KeyboardState == GlobalKeyboardHook.KeyboardState.KeyDown)
-                {
-                    var builder = new StringBuilder($"Keyboard Code: {args.KeyboardData.VirtualCode}");
-                    label1.Text = builder.ToString();
-                }
-            };
 
-            var rpcEndpoint = "https://10.0.0.9:5000";
-            channel = GrpcChannel.ForAddress(rpcEndpoint,
-                new GrpcChannelOptions
+            using var dialog = new ClientConfigurationDialog();
+            if (dialog.ShowDialog(this) == DialogResult.OK)
+            {
+                try
                 {
-                    HttpHandler = new HttpClientHandler
+                    var identification = new Identification() { Id = dialog.ClientId.ToString() };
+                    var rpcEndpoint = "https://hub.m0b.services";
+                    var channel = GrpcChannel.ForAddress(rpcEndpoint, new GrpcChannelOptions
                     {
-                        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-                    }
-                });
-            client = new Greeter.GreeterClient(channel);
+                        HttpHandler = new HttpClientHandler
+                        {
+                            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                        }
+                    });
+                    client = new Greeter.GreeterClient(channel);
+                    serverGameResolution = client.GetGameResolution(new Empty());
+                    serverMonitorResolution = client.GetMonitorResolution(new Empty());
+                    CalculatePerspective();
+
+                    this.Text = $"Remote Client Id: {client?.Identify(identification)?.Message}";
+                    this.Opacity = dialog.Opacity;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                    client = null;
+                    throw;
+                }
+            }
+
+            this.provider = provider;
+        }
+
+        void CalculatePerspective()
+        {
+            xmod = (float)serverMonitorResolution.X / DisplayRectangle.Width;
+            ymod = (float)serverMonitorResolution.Y / DisplayRectangle.Height;
         }
 
         private void ClientForm_DoubleClick(object sender, EventArgs e)
@@ -40,7 +62,7 @@ namespace Client.WinForms
             if (e is not MouseEventArgs mouse)
                 return;
 
-            client.SendMouseEvent(new MouseEvent()
+            client?.SendMouseEvent(new MouseEvent()
             {
                 X = mouse.X,
                 Y = mouse.Y,
@@ -50,18 +72,33 @@ namespace Client.WinForms
 
         private void ClientForm_MouseMove(object sender, MouseEventArgs mouse)
         {
-            label1.Text = $"Coordinates: {mouse.X} {mouse.Y}";
-            client.SendMouseEvent(new MouseEvent()
-            {
-                X = mouse.X,
-                Y = mouse.Y,
-                Type = EventType.Move
-            });
+            outboundEvent.X = (int)(mouse.X * xmod);
+            outboundEvent.Y = (int)(mouse.Y * ymod);
+            outboundEvent.Type = EventType.Move;
+            client?.SendMouseEvent(outboundEvent);
         }
 
         private void ClientForm_MouseDown(object sender, MouseEventArgs mouse)
         {
-            client.SendMouseEvent(new MouseEvent()
+            if(mouse.Button == MouseButtons.XButton1)
+            {
+                using var dialog = new ClientConfigurationDialog();
+                if (dialog.ShowDialog(this) == DialogResult.OK)
+                {
+                    try
+                    {
+                        this.Opacity = dialog.Opacity;
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message);
+                        throw;
+                    }
+                }
+                return;
+            }
+
+            client?.SendMouseEvent(new MouseEvent()
             {
                 X = mouse.X,
                 Y = mouse.Y,
@@ -76,7 +113,7 @@ namespace Client.WinForms
 
         private void ClientForm_MouseUp(object sender, MouseEventArgs mouse)
         {
-            client.SendMouseEvent(new MouseEvent()
+            client?.SendMouseEvent(new MouseEvent()
             {
                 X = mouse.X,
                 Y = mouse.Y,
@@ -87,6 +124,49 @@ namespace Client.WinForms
                     _ => throw new NotImplementedException()
                 }
             });
+        }
+
+        private void ClientForm_KeyDown(object sender, KeyEventArgs e)
+        {
+            client?.SendKeyboardEvent(new KeyboardEvent()
+            {
+                Key = e.KeyValue,
+                Type = EventType.Keydown
+            });
+        }
+
+        private void ClientForm_KeyUp(object sender, KeyEventArgs e)
+        {
+            client?.SendKeyboardEvent(new KeyboardEvent()
+            {
+                Key = e.KeyValue,
+                Type = EventType.Keyup
+            });
+        }
+
+        private void configurationToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using var dialog = new ClientConfigurationDialog();
+            if (dialog.ShowDialog(this) == DialogResult.OK)
+            {
+                try
+                {
+                    this.Opacity = dialog.Opacity;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                    throw;
+                }
+            }
+        }
+        
+        private void ClientForm_Resize(object sender, EventArgs e)
+        {
+            if (serverMonitorResolution is null || serverGameResolution is null)
+                return;
+
+            CalculatePerspective();
         }
     }
 }

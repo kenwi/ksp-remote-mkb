@@ -1,0 +1,106 @@
+﻿@page "/"
+@using Grpc.Net.Client
+@using Microsoft.AspNetCore.Components.Web
+@using Blazor.Extensions.Canvas
+@using SixLabors.ImageSharp
+@using SixLabors.ImageSharp.PixelFormats
+@using Server.Services
+
+@inject ScreenshotService ScreenshotService
+
+<PageTitle>Index</PageTitle>
+<img src="@Image64" width="1600" height="900" @onmousedown="@MouseClick" @onmouseup="@MouseUp" @onmousemove="@MouseMove" />
+
+@code 
+{
+    Greeter.GreeterClient? client;
+    static readonly MouseEvent outboundEvent = new();
+    protected string Image64 { get; set; } = string.Empty;
+    Random rng = new Random();
+    Resolution monitor = new();
+    DateTime last = new();
+    ScreenCapture sc = new();
+
+    async void RunPeriodicImageUpdate()
+    {
+        while (true)
+        {
+            Image64 = ScreenshotService.Image64;
+            StateHasChanged();
+            await Task.Delay(100);
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        try
+        {
+            var identification = new Identification() { Id = Guid.Empty.ToString() };
+            var rpcEndpoint = "https://hub.m0b.services";
+            var channel = GrpcChannel.ForAddress(rpcEndpoint, new GrpcChannelOptions
+                {
+                    HttpHandler = new HttpClientHandler
+                    {
+                        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                    }
+                });
+            client = new Greeter.GreeterClient(channel);
+            monitor = client.GetMonitorResolution(new Empty());
+
+            RunPeriodicImageUpdate();
+        }
+        catch (Exception)
+        {
+            client = null;
+            throw;
+        }
+
+        base.OnInitialized();
+    }
+
+    protected async void MouseUp(MouseEventArgs e)
+    {
+        if ((DateTime.Now - last).Milliseconds < 100)
+            return;
+
+        var xmod = (float)monitor.X / 1600;
+        var ymod = (float)monitor.Y / 900;
+        outboundEvent.X = (int)(e.ClientX * xmod) - 50;
+        outboundEvent.Y = (int)(e.ClientY * ymod) - 25;
+        outboundEvent.Type = EventType.Leftup;
+        if (client != null && outboundEvent != null)
+            await client.SendMouseEventAsync(outboundEvent);
+    }
+
+    protected async void MouseClick(MouseEventArgs e)
+    {
+        if ((DateTime.Now - last).Milliseconds < 100)
+            return;
+
+        var xmod = (float)monitor.X / 1600;
+        var ymod = (float)monitor.Y / 900;
+        outboundEvent.X = (int)(e.ClientX * xmod) - 50;
+        outboundEvent.Y = (int)(e.ClientY * ymod) - 25;
+        outboundEvent.Type = EventType.Leftdown;
+        if (client != null && outboundEvent != null)
+            await client.SendMouseEventAsync(outboundEvent);
+    }
+
+    protected async void MouseMove(MouseEventArgs e)
+    {
+        if ((DateTime.Now - last).Milliseconds < 10)
+        {
+            return;
+        }
+        if (client == null)
+            return;
+
+        var xmod = (float)monitor.X / 1600;
+        var ymod = (float)monitor.Y / 900;
+        outboundEvent.X = (int)(e.ClientX * xmod) - 50;
+        outboundEvent.Y = (int)(e.ClientY * ymod) - 25;
+        outboundEvent.Type = EventType.Move;
+        if (client != null && outboundEvent != null)
+            await client.SendMouseEventAsync(outboundEvent);
+    }
+}

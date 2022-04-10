@@ -7,13 +7,44 @@ package greet;
 service Greeter {
   rpc SendKeyboardEvent (KeyboardEvent) returns (Empty);
   rpc SendMouseEvent (MouseEvent) returns (Empty);
+  rpc Connect(stream StreamEvent) returns (stream Empty);
+  rpc Identify(Identification) returns (IdentificationResponse);
+  rpc GetMonitorResolution(Empty) returns (Resolution);
+  rpc GetGameResolution(Empty) returns (Resolution);
 }
 
 message Empty{
+
+}
+
+message Resolution {
+	int32 x = 1;
+	int32 y = 2;
+}
+
+message Identification {
+	string id = 1;
+}
+
+message IdentificationResponse {
+	string message = 1;
+	IdentificationResponseType responsetype = 2;
+}
+
+enum IdentificationResponseType {
+	OK = 0;
+	FAILURE = 1;
+}
+
+message StreamEvent {
+	EventType type = 1;
+	KeyboardEvent keyboard = 2;
+	MouseEvent mouse = 3;
 }
 
 message KeyboardEvent {
   int32 key = 1;
+  EventType type = 2;
 }
 
 message MouseMoveEvent {
@@ -28,6 +59,8 @@ enum EventType {
   RIGHTDOWN = 3;
   MOVE = 4;
   DOUBLECLICK = 5;
+  KEYDOWN = 6;
+  KEYUP = 7;
 }
 
 message MouseEvent {
