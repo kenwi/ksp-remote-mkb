@@ -56,12 +56,11 @@ namespace Server.Services
         public override Task<Empty> SendKeyboardEvent(KeyboardEvent request, ServerCallContext context)
         {
             var code = (KeyCode)request.Key;
-            var dir = (EventType)request.Type;
-
-            if(dir == EventType.Keydown)
-                events = events.Hold(code);
-            if(dir == EventType.Keyup)
-                events = events.Release(code);
+            events = request.Type switch
+            {
+                EventType.Keydown => events.Hold(code),
+                EventType.Keyup => events.Release(code),
+            };
             events.Invoke();
             return Task.FromResult(empty);
         }
@@ -76,8 +75,6 @@ namespace Server.Services
                 EventType.Rightdown => events.Hold(ButtonCode.Right),
                 EventType.Move => events.MoveTo(request.X, request.Y),
                 EventType.Doubleclick => events.DoubleClick(ButtonCode.Left),
-                //EventType.Keydown => throw new NotImplementedException(),
-                //EventType.Keyup => throw new NotImplementedException(),
             };
             events.Invoke();
             return Task.FromResult(empty);
