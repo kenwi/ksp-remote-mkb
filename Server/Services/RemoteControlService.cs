@@ -50,7 +50,7 @@ namespace Server.Services
 
         public override Task<IdentificationResponse> Identify(Identification request, ServerCallContext context)
         {
-            return Task.FromResult(new IdentificationResponse() { Message = "m0b", Responsetype = IdentificationResponseType.Ok });
+            return Task.FromResult(new IdentificationResponse() { Message = "nick", Responsetype = IdentificationResponseType.Ok });
         }
 
         public override Task<Empty> SendKeyboardEvent(KeyboardEvent request, ServerCallContext context)

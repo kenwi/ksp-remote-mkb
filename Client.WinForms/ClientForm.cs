@@ -24,7 +24,7 @@ namespace Client.WinForms
                 try
                 {
                     var identification = new Identification() { Id = dialog.ClientId.ToString() };
-                    var rpcEndpoint = "https://hub.m0b.services";
+                    var rpcEndpoint = "https://localhost";
                     var channel = GrpcChannel.ForAddress(rpcEndpoint, new GrpcChannelOptions
                     {
                         HttpHandler = new HttpClientHandler
