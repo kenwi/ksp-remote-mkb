@@ -9,12 +9,11 @@ namespace Client.WinForms
     {
         static readonly MouseEvent outboundEvent = new();
         readonly Greeter.GreeterClient? client;
-        private readonly IServiceProvider provider;
-        Resolution serverGameResolution;
-        Resolution serverMonitorResolution;
+        Resolution? serverGameResolution;
+        Resolution? serverMonitorResolution;
         float xmod = 0, ymod = 0;
 
-        public ClientForm(ILogger<ClientForm> logger, IServiceProvider provider)
+        public ClientForm(ILogger<ClientForm> logger)
         {
             InitializeComponent();
 
@@ -47,12 +46,13 @@ namespace Client.WinForms
                     throw;
                 }
             }
-
-            this.provider = provider;
         }
 
         void CalculatePerspective()
         {
+            if (serverMonitorResolution is null || serverGameResolution is null)
+                return;
+
             xmod = (float)serverMonitorResolution.X / DisplayRectangle.Width;
             ymod = (float)serverMonitorResolution.Y / DisplayRectangle.Height;
         }
