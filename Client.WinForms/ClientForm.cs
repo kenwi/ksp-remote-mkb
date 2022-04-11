@@ -9,8 +9,8 @@ namespace Client.WinForms
     {
         static readonly MouseEvent outboundEvent = new();
         readonly Greeter.GreeterClient? client;
-        Resolution? serverGameResolution;
-        Resolution? serverMonitorResolution;
+        readonly Resolution? serverGameResolution;
+        readonly Resolution? serverMonitorResolution;
         float xmod = 0, ymod = 0;
 
         public ClientForm(ILogger<ClientForm> logger)
