@@ -17,13 +17,22 @@ namespace Client.WinForms
         {
             InitializeComponent();
 
-            using var dialog = new ClientConfigurationDialog();
+            using var dialog = new ClientConfigurationDialog()
+            {
+                ServerURI = Environment.GetCommandLineArgs()
+                .Skip(1)
+                .FirstOrDefault()
+                ?? "https://localhost"
+            };
+
             if (dialog.ShowDialog(this) == DialogResult.OK)
             {
                 try
                 {
                     var identification = new Identification() { Id = dialog.ClientId.ToString() };
-                    var rpcEndpoint = "https://localhost";
+                    var rpcEndpoint =  dialog.ServerURI;
+
+                    logger.LogInformation($"Connecting to RpcEndpoint: {rpcEndpoint}");
                     var channel = GrpcChannel.ForAddress(rpcEndpoint, new GrpcChannelOptions
                     {
                         HttpHandler = new HttpClientHandler
@@ -36,12 +45,17 @@ namespace Client.WinForms
                     serverMonitorResolution = client.GetMonitorResolution(new Empty());
                     CalculatePerspective();
 
-                    this.Text = $"Remote Client Id: {client?.Identify(identification)?.Message}";
+                    var clientId = client?.Identify(identification)?.Message;
+                    this.Text = $"Remote Client Id: {clientId}";
                     this.Opacity = dialog.Opacity;
+
+                    logger.LogInformation($"Received gRPC Client Id: {clientId}");
+                    logger.LogInformation($"Selected Opacity: {Opacity}");
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show(ex.Message);
+                    logger.LogCritical(ex.Message);
                     client = null;
                     throw;
                 }
@@ -80,7 +94,7 @@ namespace Client.WinForms
 
         private void ClientForm_MouseDown(object sender, MouseEventArgs mouse)
         {
-            if(mouse.Button == MouseButtons.XButton1)
+            if (mouse.Button == MouseButtons.XButton1)
             {
                 using var dialog = new ClientConfigurationDialog();
                 if (dialog.ShowDialog(this) == DialogResult.OK)
@@ -160,7 +174,7 @@ namespace Client.WinForms
                 }
             }
         }
-        
+
         private void ClientForm_Resize(object sender, EventArgs e)
         {
             if (serverMonitorResolution is null || serverGameResolution is null)

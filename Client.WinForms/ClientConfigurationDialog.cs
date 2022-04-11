@@ -15,6 +15,8 @@ namespace Client.WinForms
     {
         public Guid ClientId => Guid.Parse(clientGuid.Text);
 
+        public string? ServerURI { get => serverHost.Text; set => serverHost.Text = value; }
+
         public ClientConfigurationDialog()
         {
             InitializeComponent();

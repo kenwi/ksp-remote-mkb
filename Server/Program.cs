@@ -42,7 +42,7 @@ app.MapGrpcService<RemoteControlService>();
 
 var host = Environment.GetCommandLineArgs()
     .FirstOrDefault(arg => arg.ToLower().StartsWith("http"))
-    ?? "https://localhost:443";
+    ?? "https://localhost";
 app.Run(host);
 
 public interface IFoo

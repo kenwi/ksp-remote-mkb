@@ -33,19 +33,23 @@
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.nmOpacity = new System.Windows.Forms.NumericUpDown();
+            this.serverHost = new System.Windows.Forms.TextBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             ((System.ComponentModel.ISupportInitialize)(this.nmOpacity)).BeginInit();
+            this.flowLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // clientGuid
             // 
-            this.clientGuid.Location = new System.Drawing.Point(82, 12);
+            this.clientGuid.Location = new System.Drawing.Point(8, 81);
             this.clientGuid.Name = "clientGuid";
-            this.clientGuid.Size = new System.Drawing.Size(320, 27);
+            this.clientGuid.Size = new System.Drawing.Size(302, 27);
             this.clientGuid.TabIndex = 0;
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(12, 78);
+            this.button1.Location = new System.Drawing.Point(8, 167);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(94, 29);
             this.button1.TabIndex = 1;
@@ -56,16 +60,16 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 15);
+            this.label1.Location = new System.Drawing.Point(8, 5);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(64, 20);
+            this.label1.Size = new System.Drawing.Size(50, 20);
             this.label1.TabIndex = 2;
-            this.label1.Text = "Client Id";
+            this.label1.Text = "Server";
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 47);
+            this.label2.Location = new System.Drawing.Point(8, 111);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(60, 20);
             this.label2.TabIndex = 3;
@@ -79,7 +83,7 @@
             0,
             0,
             65536});
-            this.nmOpacity.Location = new System.Drawing.Point(82, 45);
+            this.nmOpacity.Location = new System.Drawing.Point(8, 134);
             this.nmOpacity.Maximum = new decimal(new int[] {
             1,
             0,
@@ -94,23 +98,55 @@
             0,
             65536});
             // 
+            // serverHost
+            // 
+            this.serverHost.Location = new System.Drawing.Point(8, 28);
+            this.serverHost.Name = "serverHost";
+            this.serverHost.Size = new System.Drawing.Size(302, 27);
+            this.serverHost.TabIndex = 0;
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(8, 58);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(64, 20);
+            this.label3.TabIndex = 2;
+            this.label3.Text = "Client Id";
+            // 
+            // flowLayoutPanel1
+            // 
+            this.flowLayoutPanel1.Controls.Add(this.label1);
+            this.flowLayoutPanel1.Controls.Add(this.serverHost);
+            this.flowLayoutPanel1.Controls.Add(this.label3);
+            this.flowLayoutPanel1.Controls.Add(this.clientGuid);
+            this.flowLayoutPanel1.Controls.Add(this.label2);
+            this.flowLayoutPanel1.Controls.Add(this.nmOpacity);
+            this.flowLayoutPanel1.Controls.Add(this.button1);
+            this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.flowLayoutPanel1.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
+            this.flowLayoutPanel1.Location = new System.Drawing.Point(0, 0);
+            this.flowLayoutPanel1.Name = "flowLayoutPanel1";
+            this.flowLayoutPanel1.Padding = new System.Windows.Forms.Padding(5);
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(322, 243);
+            this.flowLayoutPanel1.TabIndex = 5;
+            // 
             // ClientConfigurationDialog
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(425, 114);
-            this.Controls.Add(this.nmOpacity);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.button1);
-            this.Controls.Add(this.clientGuid);
+            this.ClientSize = new System.Drawing.Size(322, 243);
+            this.Controls.Add(this.flowLayoutPanel1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "ClientConfigurationDialog";
             this.Text = "ClientConfigurationDialog";
             this.Load += new System.EventHandler(this.ClientConfigurationDialog_Load);
             ((System.ComponentModel.ISupportInitialize)(this.nmOpacity)).EndInit();
+            this.flowLayoutPanel1.ResumeLayout(false);
+            this.flowLayoutPanel1.PerformLayout();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -121,5 +157,8 @@
         private Label label1;
         private Label label2;
         private NumericUpDown nmOpacity;
+        private TextBox serverHost;
+        private Label label3;
+        private FlowLayoutPanel flowLayoutPanel1;
     }
 }
