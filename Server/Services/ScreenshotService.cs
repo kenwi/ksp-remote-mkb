@@ -8,19 +8,22 @@ namespace Server.Services
 
         ScreenCapture sc = new();
 
-        public ScreenshotService()
-        {
-
-        }
-
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            Graphics? graphics = null;
             while (true)
             {
                 using var outStream = new MemoryStream();
                 using var img = sc.CaptureScreen();
-                using var resized = new Bitmap(img, 1600, 900);
-                resized.Save(outStream, System.Drawing.Imaging.ImageFormat.Jpeg);
+
+                if(graphics is null)
+                    graphics = Graphics.FromImage(img);
+
+                graphics.DrawImage(img, 1600, 1200);
+                img.Save(outStream, System.Drawing.Imaging.ImageFormat.Jpeg);
+
+                //using var resized = new Bitmap(img, 1600, 900);
+                //resized.Save(outStream, System.Drawing.Imaging.ImageFormat.Jpeg);
                 Image64 = "data:image/jpeg;base64," + Convert.ToBase64String(outStream.ToArray());
                 await Task.Delay(100, stoppingToken);
             }
