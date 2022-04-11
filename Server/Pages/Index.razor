@@ -65,6 +65,16 @@
         ymod = (float)monitor.Y / 900;
     }
 
+    void SetOutboundEvent(double x, double y, EventType eventType)
+    {
+        if (outboundEvent is null)
+            return;
+
+        outboundEvent.X = (int)(x * xmod) - 50;
+        outboundEvent.Y = (int)(y * ymod) - 25;
+        outboundEvent.Type = EventType.Leftdown;
+    }
+
     protected async void MouseUp(MouseEventArgs e)
     {
         if ((DateTime.Now - last).Milliseconds < 100)
@@ -73,9 +83,7 @@
             return;
 
         CalculateRatio();
-        outboundEvent.X = (int)(e.ClientX * xmod) - 50;
-        outboundEvent.Y = (int)(e.ClientY * ymod) - 25;
-        outboundEvent.Type = EventType.Leftup;
+        SetOutboundEvent(e.ClientX, e.ClientY, EventType.Leftup);
         await client.SendMouseEventAsync(outboundEvent);
     }
 
@@ -87,9 +95,7 @@
             return;
 
         CalculateRatio();
-        outboundEvent.X = (int)(e.ClientX * xmod) - 50;
-        outboundEvent.Y = (int)(e.ClientY * ymod) - 25;
-        outboundEvent.Type = EventType.Leftdown;
+        SetOutboundEvent(e.ClientX, e.ClientY, EventType.Leftdown);
         await client.SendMouseEventAsync(outboundEvent);
     }
 
@@ -101,9 +107,7 @@
             return;
 
         CalculateRatio();
-        outboundEvent.X = (int)(e.ClientX * xmod) - 50;
-        outboundEvent.Y = (int)(e.ClientY * ymod) - 25;
-        outboundEvent.Type = EventType.Move;
+        SetOutboundEvent(e.ClientX, e.ClientY, EventType.Move);
         await client.SendMouseEventAsync(outboundEvent);
     }
 }
