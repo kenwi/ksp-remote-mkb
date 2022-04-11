@@ -16,6 +16,7 @@ namespace Client.WinForms
         public ClientForm(ILogger<ClientForm> logger)
         {
             InitializeComponent();
+            this.MouseWheel += ClientForm_MouseWheel;
 
             using var dialog = new ClientConfigurationDialog()
             {
@@ -60,6 +61,21 @@ namespace Client.WinForms
                     throw;
                 }
             }
+        }
+
+        private void ClientForm_MouseWheel(object? sender, MouseEventArgs mouse)
+        {
+            client?.SendMouseEvent(new MouseEvent()
+            {
+                X = mouse.X,
+                Y = mouse.Y,
+                Type = mouse.Delta switch
+                {
+                    > 0 => EventType.Scrollup,
+                    < 0 => EventType.Scrolldown
+                },
+                Value = mouse.Delta
+            });
         }
 
         void CalculatePerspective()

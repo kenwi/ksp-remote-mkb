@@ -75,6 +75,8 @@ namespace Server.Services
                 EventType.Rightdown => events.Hold(ButtonCode.Right),
                 EventType.Move => events.MoveTo(request.X, request.Y),
                 EventType.Doubleclick => events.DoubleClick(ButtonCode.Left),
+                EventType.Scrolldown => events.Scroll((ButtonCode)request.X, ButtonScrollDirection.Down),
+                EventType.Scrollup => events.Scroll((ButtonCode)request.X, ButtonScrollDirection.Up)
             };
             events.Invoke();
             return Task.FromResult(empty);

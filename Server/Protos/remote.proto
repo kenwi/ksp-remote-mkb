@@ -61,10 +61,13 @@ enum EventType {
   DOUBLECLICK = 5;
   KEYDOWN = 6;
   KEYUP = 7;
+  SCROLLUP = 8;
+  SCROLLDOWN = 9;
 }
 
 message MouseEvent {
   int32 x = 1;
   int32 y = 2;
   EventType type = 3;
+  optional int32 value = 4;
 }
