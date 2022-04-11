@@ -29,7 +29,7 @@ namespace Client.WinForms
             {
                 try
                 {
-                    var identification = new Identification() { Id = dialog.ClientId.ToString() };
+                    var identification = new Identification() { Id = dialog.ClientId };
                     var rpcEndpoint =  dialog.ServerURI;
 
                     logger.LogInformation($"Connecting to RpcEndpoint: {rpcEndpoint}");

@@ -13,7 +13,7 @@ namespace Client.WinForms
 {
     public partial class ClientConfigurationDialog : Form
     {
-        public Guid ClientId => Guid.Parse(clientGuid.Text);
+        public string? ClientId => Guid.Parse(clientGuid.Text).ToString();
 
         public string? ServerURI { get => serverHost.Text; set => serverHost.Text = value; }
 
