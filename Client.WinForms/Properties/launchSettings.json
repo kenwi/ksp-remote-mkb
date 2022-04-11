@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "Client.WinForms CF": {
+      "commandName": "Project",
+      "commandLineArgs": "https://hub.m0b.services"
+    },
+    "Client.WinForms Intra": {
+      "commandName": "Project",
+      "commandLineArgs": "https://10.0.0.9"
+    },
+    "Client.WinForms": {
+      "commandName": "Project"
+    }
+  }
+}

@@ -54,7 +54,7 @@ namespace Client.WinForms
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show(ex.Message);
+                    MessageBox.Show(ex.Message, "Exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     logger.LogCritical(ex.Message);
                     client = null;
                     throw;
