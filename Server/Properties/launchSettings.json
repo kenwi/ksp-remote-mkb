@@ -1,8 +1,25 @@
 {
   "profiles": {
-    "Server": {
+    "WSL": {
+      "commandName": "WSL2",
+      "launchUrl": "https://localhost:7278",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:5278;https://localhost:7278"
+      },
+      "distributionName": ""
+    },
+    "Server useBlazor": {
       "commandName": "Project",
       "commandLineArgs": "useblazor",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "http://localhost:5278;https://localhost:7278",
+      "dotnetRunMessages": true
+    },
+    "Server": {
+      "commandName": "Project",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },

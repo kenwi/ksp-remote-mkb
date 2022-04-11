@@ -1,6 +1,4 @@
-using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
-using Server;
 using WindowsInput;
 using WindowsInput.Events;
 
@@ -25,7 +23,6 @@ namespace Server.Services
                 {
                     events = events.MoveTo(req.Mouse.X, req.Mouse.Y);
                 }
-                
                 await response.WriteAsync(empty);
             }
         }
@@ -76,7 +73,7 @@ namespace Server.Services
                 EventType.Move => events.MoveTo(request.X, request.Y),
                 EventType.Doubleclick => events.DoubleClick(ButtonCode.Left),
                 EventType.Scrolldown => events.Scroll((ButtonCode)request.X, ButtonScrollDirection.Down),
-                EventType.Scrollup => events.Scroll((ButtonCode)request.X, ButtonScrollDirection.Up)
+                EventType.Scrollup => events.Scroll((ButtonCode)request.X, ButtonScrollDirection.Up),
             };
             events.Invoke();
             return Task.FromResult(empty);
