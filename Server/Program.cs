@@ -6,16 +6,20 @@ if(File.Exists("localhost.pem"))
 if(File.Exists("localhost.key"))
     builder.Configuration["Kestrel:Certificates:Default:KeyPath"]= Path.Combine(builder.Environment.ContentRootPath, "localhost.key");
 
-//builder.Services.AddRazorPages();
-//builder.Services.AddServerSideBlazor();
-
 builder.Services.AddGrpc();
 
 //builder.Services.AddSingleton<IFoo, Foo>();
 //builder.Services.AddSingleton<DllHookService>();
+var useBlazor = Environment.GetCommandLineArgs()
+    .Any(arg => arg.ToLower().Equals("useblazor"));
 
-//builder.Services.AddSingleton<ScreenshotService>();
-//builder.Services.AddHostedService<ScreenshotService>(provider => provider.GetRequiredService<ScreenshotService>());
+if (useBlazor)
+{
+    builder.Services.AddRazorPages();
+    builder.Services.AddServerSideBlazor();
+    builder.Services.AddSingleton<ScreenshotService>();
+    builder.Services.AddHostedService<ScreenshotService>(provider => provider.GetRequiredService<ScreenshotService>());
+}
 
 var app = builder.Build();
 if (!app.Environment.IsDevelopment())
@@ -24,15 +28,22 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
-//app.UseStaticFiles();
-//app.UseRouting();
-//app.MapBlazorHub();
-//app.MapFallbackToPage("/_Host");
+if(useBlazor)
+{
+    app.UseStaticFiles();
+    app.UseRouting();
+    app.MapBlazorHub();
+    app.MapFallbackToPage("/_Host");
+}
 
+app.UseHttpsRedirection();
 app.MapGrpcService<RemoteControlService>();
 //app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
-app.Run(args.FirstOrDefault());
+
+var host = Environment.GetCommandLineArgs()
+    .FirstOrDefault(arg => arg.ToLower().Contains("http"))
+    ?? "https://localhost:443";
+app.Run(host);
 
 public interface IFoo
 {
