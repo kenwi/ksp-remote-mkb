@@ -13,9 +13,9 @@ namespace Client.WinForms
 {
     public partial class ClientConfigurationDialog : Form
     {
-        public string? ClientId => Guid.Parse(clientGuid.Text).ToString();
+        public string? ClientId => Guid.Parse(inputClientGuid.Text).ToString();
 
-        public string? ServerURI { get => serverHost.Text; set => serverHost.Text = value; }
+        public string? ServerURI { get => inputServerHost.Text; set => inputServerHost.Text = value; }
 
         public ClientConfigurationDialog()
         {
@@ -24,12 +24,12 @@ namespace Client.WinForms
 
         private void ClientConfigurationDialog_Load(object sender, EventArgs e)
         {
-            clientGuid.Text = $"{Guid.Empty}";
+            inputClientGuid.Text = $"{Guid.Empty}";
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            Opacity = (float)nmOpacity.Value;
+            Opacity = (float)numOpacity.Value;
             DialogResult = DialogResult.OK;
         }
     }

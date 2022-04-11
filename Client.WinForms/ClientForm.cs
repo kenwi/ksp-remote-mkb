@@ -54,7 +54,7 @@ namespace Client.WinForms
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show(ex.Message);
+                    MessageBox.Show(ex.Message, "Exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     logger.LogCritical(ex.Message);
                     client = null;
                     throw;
@@ -156,23 +156,6 @@ namespace Client.WinForms
                 Key = e.KeyValue,
                 Type = EventType.Keyup
             });
-        }
-
-        private void configurationToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            using var dialog = new ClientConfigurationDialog();
-            if (dialog.ShowDialog(this) == DialogResult.OK)
-            {
-                try
-                {
-                    this.Opacity = dialog.Opacity;
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message);
-                    throw;
-                }
-            }
         }
 
         private void ClientForm_Resize(object sender, EventArgs e)

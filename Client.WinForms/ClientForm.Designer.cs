@@ -45,13 +45,6 @@
             this.mainMenu.Text = "menuStrip1";
             this.mainMenu.Visible = false;
             // 
-            // configurationToolStripMenuItem
-            // 
-            this.configurationToolStripMenuItem.Name = "configurationToolStripMenuItem";
-            this.configurationToolStripMenuItem.Size = new System.Drawing.Size(114, 24);
-            this.configurationToolStripMenuItem.Text = "Configuration";
-            this.configurationToolStripMenuItem.Click += new System.EventHandler(this.configurationToolStripMenuItem_Click);
-            // 
             // ClientForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);

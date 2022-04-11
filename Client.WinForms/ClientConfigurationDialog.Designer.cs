@@ -28,34 +28,34 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.clientGuid = new System.Windows.Forms.TextBox();
-            this.button1 = new System.Windows.Forms.Button();
+            this.inputClientGuid = new System.Windows.Forms.TextBox();
+            this.btnOK = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
-            this.nmOpacity = new System.Windows.Forms.NumericUpDown();
-            this.serverHost = new System.Windows.Forms.TextBox();
+            this.numOpacity = new System.Windows.Forms.NumericUpDown();
+            this.inputServerHost = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
-            ((System.ComponentModel.ISupportInitialize)(this.nmOpacity)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numOpacity)).BeginInit();
             this.flowLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
             // 
-            // clientGuid
+            // inputClientGuid
             // 
-            this.clientGuid.Location = new System.Drawing.Point(8, 81);
-            this.clientGuid.Name = "clientGuid";
-            this.clientGuid.Size = new System.Drawing.Size(302, 27);
-            this.clientGuid.TabIndex = 0;
+            this.inputClientGuid.Location = new System.Drawing.Point(8, 81);
+            this.inputClientGuid.Name = "inputClientGuid";
+            this.inputClientGuid.Size = new System.Drawing.Size(302, 27);
+            this.inputClientGuid.TabIndex = 0;
             // 
-            // button1
+            // btnOK
             // 
-            this.button1.Location = new System.Drawing.Point(8, 167);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(94, 29);
-            this.button1.TabIndex = 1;
-            this.button1.Text = "OK";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.btnOK.Location = new System.Drawing.Point(8, 167);
+            this.btnOK.Name = "btnOK";
+            this.btnOK.Size = new System.Drawing.Size(94, 29);
+            this.btnOK.TabIndex = 1;
+            this.btnOK.Text = "OK";
+            this.btnOK.UseVisualStyleBackColor = true;
+            this.btnOK.Click += new System.EventHandler(this.button1_Click);
             // 
             // label1
             // 
@@ -75,35 +75,35 @@
             this.label2.TabIndex = 3;
             this.label2.Text = "Opacity";
             // 
-            // nmOpacity
+            // numOpacity
             // 
-            this.nmOpacity.DecimalPlaces = 1;
-            this.nmOpacity.Increment = new decimal(new int[] {
+            this.numOpacity.DecimalPlaces = 1;
+            this.numOpacity.Increment = new decimal(new int[] {
             1,
             0,
             0,
             65536});
-            this.nmOpacity.Location = new System.Drawing.Point(8, 134);
-            this.nmOpacity.Maximum = new decimal(new int[] {
+            this.numOpacity.Location = new System.Drawing.Point(8, 134);
+            this.numOpacity.Maximum = new decimal(new int[] {
             1,
             0,
             0,
             0});
-            this.nmOpacity.Name = "nmOpacity";
-            this.nmOpacity.Size = new System.Drawing.Size(64, 27);
-            this.nmOpacity.TabIndex = 4;
-            this.nmOpacity.Value = new decimal(new int[] {
+            this.numOpacity.Name = "numOpacity";
+            this.numOpacity.Size = new System.Drawing.Size(64, 27);
+            this.numOpacity.TabIndex = 4;
+            this.numOpacity.Value = new decimal(new int[] {
             5,
             0,
             0,
             65536});
             // 
-            // serverHost
+            // inputServerHost
             // 
-            this.serverHost.Location = new System.Drawing.Point(8, 28);
-            this.serverHost.Name = "serverHost";
-            this.serverHost.Size = new System.Drawing.Size(302, 27);
-            this.serverHost.TabIndex = 0;
+            this.inputServerHost.Location = new System.Drawing.Point(8, 28);
+            this.inputServerHost.Name = "inputServerHost";
+            this.inputServerHost.Size = new System.Drawing.Size(302, 27);
+            this.inputServerHost.TabIndex = 0;
             // 
             // label3
             // 
@@ -117,12 +117,12 @@
             // flowLayoutPanel1
             // 
             this.flowLayoutPanel1.Controls.Add(this.label1);
-            this.flowLayoutPanel1.Controls.Add(this.serverHost);
+            this.flowLayoutPanel1.Controls.Add(this.inputServerHost);
             this.flowLayoutPanel1.Controls.Add(this.label3);
-            this.flowLayoutPanel1.Controls.Add(this.clientGuid);
+            this.flowLayoutPanel1.Controls.Add(this.inputClientGuid);
             this.flowLayoutPanel1.Controls.Add(this.label2);
-            this.flowLayoutPanel1.Controls.Add(this.nmOpacity);
-            this.flowLayoutPanel1.Controls.Add(this.button1);
+            this.flowLayoutPanel1.Controls.Add(this.numOpacity);
+            this.flowLayoutPanel1.Controls.Add(this.btnOK);
             this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flowLayoutPanel1.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.flowLayoutPanel1.Location = new System.Drawing.Point(0, 0);
@@ -133,6 +133,7 @@
             // 
             // ClientConfigurationDialog
             // 
+            this.AcceptButton = this.btnOK;
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(322, 243);
@@ -143,7 +144,7 @@
             this.Name = "ClientConfigurationDialog";
             this.Text = "ClientConfigurationDialog";
             this.Load += new System.EventHandler(this.ClientConfigurationDialog_Load);
-            ((System.ComponentModel.ISupportInitialize)(this.nmOpacity)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numOpacity)).EndInit();
             this.flowLayoutPanel1.ResumeLayout(false);
             this.flowLayoutPanel1.PerformLayout();
             this.ResumeLayout(false);
@@ -152,12 +153,12 @@
 
         #endregion
 
-        private TextBox clientGuid;
-        private Button button1;
+        private TextBox inputClientGuid;
+        private Button btnOK;
         private Label label1;
         private Label label2;
-        private NumericUpDown nmOpacity;
-        private TextBox serverHost;
+        private NumericUpDown numOpacity;
+        private TextBox inputServerHost;
         private Label label3;
         private FlowLayoutPanel flowLayoutPanel1;
     }
