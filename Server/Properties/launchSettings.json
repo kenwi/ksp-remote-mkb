@@ -1,13 +1,13 @@
-﻿{
+{
   "profiles": {
     "Server": {
       "commandName": "Project",
-      "dotnetRunMessages": true,
-      "launchBrowser": false,
-      "applicationUrl": "http://localhost:5278;https://localhost:7278",
+      "commandLineArgs": "useblazor",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      }
+      },
+      "applicationUrl": "http://localhost:5278;https://localhost:7278",
+      "dotnetRunMessages": true
     }
   }
 }
