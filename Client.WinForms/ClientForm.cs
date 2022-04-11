@@ -8,7 +8,7 @@ namespace Client.WinForms
     public partial class ClientForm : Form
     {
         static readonly MouseEvent outboundEvent = new();
-        readonly Greeter.GreeterClient? client;
+        readonly Remote.RemoteClient? client;
         readonly Resolution? serverGameResolution;
         readonly Resolution? serverMonitorResolution;
         float xmod = 0, ymod = 0;
@@ -40,7 +40,7 @@ namespace Client.WinForms
                             ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
                         }
                     });
-                    client = new Greeter.GreeterClient(channel);
+                    client = new Remote.RemoteClient(channel);
                     serverGameResolution = client.GetGameResolution(new Empty());
                     serverMonitorResolution = client.GetMonitorResolution(new Empty());
                     CalculatePerspective();

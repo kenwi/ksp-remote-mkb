@@ -6,7 +6,7 @@ using WindowsInput.Events;
 
 namespace Server.Services
 {
-    public class RemoteControlService : Greeter.GreeterBase
+    public class RemoteControlService : Remote.RemoteBase
     {
         private readonly ILogger<RemoteControlService> logger;
         private readonly Empty empty = new();

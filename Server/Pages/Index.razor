@@ -13,7 +13,7 @@
 
 @code
 {
-    Greeter.GreeterClient? client;
+    Remote.RemoteClient? client;
     MouseEvent? outboundEvent = new();
     protected string Image64 { get; set; } = string.Empty;
     Random rng = new Random();
@@ -45,7 +45,7 @@
                         ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
                     }
                 });
-            client = new Greeter.GreeterClient(channel);
+            client = new Remote.RemoteClient(channel);
             monitor = client.GetMonitorResolution(new Empty());
 
             RunPeriodicImageUpdate();

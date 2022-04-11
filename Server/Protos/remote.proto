@@ -4,7 +4,7 @@ option csharp_namespace = "Server";
 
 package greet;
 
-service Greeter {
+service Remote {
   rpc SendKeyboardEvent (KeyboardEvent) returns (Empty);
   rpc SendMouseEvent (MouseEvent) returns (Empty);
   rpc Connect(stream StreamEvent) returns (stream Empty);
