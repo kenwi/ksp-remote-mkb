@@ -23,11 +23,11 @@
 
     [Parameter]
     [SupplyParameterFromQuery(Name = "x")]
-    public int? X { get; set; }
+    public int? ResolutionX { get; set; }
 
     [Parameter]
     [SupplyParameterFromQuery(Name = "y")]
-    public int? Y { get; set; }
+    public int? ResolutionY { get; set; }
 
     [Parameter]
     [SupplyParameterFromQuery(Name = "rpcendpoint")]
@@ -57,7 +57,7 @@
         UpdateFrames = UpdateFrames ?? false;
         RpcEndpoint = RpcEndpoint ?? "https://localhost";
         FrameRate = 1000/FrameRate ?? 100;
-        (X, Y) = (X ?? 1600, Y ?? 900);
+        (ResolutionX, ResolutionY) = (ResolutionX ?? 1600, ResolutionY ?? 900);
 
         try
         {
@@ -81,19 +81,21 @@
             throw;
         }
         base.OnInitialized();
-        
     }
 
     void CalculateRatio()
     {
-        xmod = (float)monitor.X / 1600;
-        ymod = (float)monitor.Y / 900;
+        if (ResolutionX is null || ResolutionY is null)
+            throw new Exception("No resolution set");
+
+        xmod = (float)monitor.X / (int)ResolutionX;
+        ymod = (float)monitor.Y / (int)ResolutionY;
     }
 
     void SetOutboundEvent(double x, double y, EventType eventType)
     {
         if (outboundEvent is null)
-            return;
+            throw new Exception("No outboundEvent exists");
 
         outboundEvent.X = (int)(x * xmod) - 50;
         outboundEvent.Y = (int)(y * ymod) - 25;
@@ -104,8 +106,10 @@
     {
         if ((DateTime.Now - last).Milliseconds < 100)
             return;
+
         if (outboundEvent is null || client is null)
-            return;
+            throw new Exception("Either no outboundEvent or no client exists");
+;
 
         CalculateRatio();
         SetOutboundEvent(e.ClientX, e.ClientY, EventType.Leftup);
@@ -116,8 +120,9 @@
     {
         if ((DateTime.Now - last).Milliseconds < 100)
             return;
-        if (outboundEvent is null || client is null)
-            return;
+
+        if (outboundEvent is null || client is  null)
+            throw new Exception("Either no outboundEvent or no client exists");
 
         CalculateRatio();
         SetOutboundEvent(e.ClientX, e.ClientY, EventType.Leftdown);
@@ -128,8 +133,9 @@
     {
         if ((DateTime.Now - last).Milliseconds < 10)
             return;
+
         if (outboundEvent is null || client is  null)
-            return;
+            throw new Exception("Either no outboundEvent or no client exists");
 
         CalculateRatio();
         SetOutboundEvent(e.ClientX, e.ClientY, EventType.Move);
