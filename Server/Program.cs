@@ -1,12 +1,15 @@
 using Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-if(File.Exists("localhost.pem")) 
-    builder.Configuration["Kestrel:Certificates:Default:Path"] = Path.Combine(builder.Environment.ContentRootPath, "localhost.pem");
-if(File.Exists("localhost.key"))
-    builder.Configuration["Kestrel:Certificates:Default:KeyPath"]= Path.Combine(builder.Environment.ContentRootPath, "localhost.key");
+if(File.Exists("hub.m0b.services.pem")) 
+    builder.Configuration["Kestrel:Certificates:Default:Path"] = Path.Combine(builder.Environment.ContentRootPath, "hub.m0b.services.pem");
+if(File.Exists("hub.m0b.services.key"))
+    builder.Configuration["Kestrel:Certificates:Default:KeyPath"]= Path.Combine(builder.Environment.ContentRootPath, "hub.m0b.services.key");
 
 builder.Services.AddGrpc();
+
+builder.Services.AddSingleton<OpenGLScreenshotService>();
+builder.Services.AddHostedService<OpenGLScreenshotService>(provider => provider.GetRequiredService<OpenGLScreenshotService>());
 
 //builder.Services.AddSingleton<IFoo, Foo>();
 //builder.Services.AddSingleton<DllHookService>();
