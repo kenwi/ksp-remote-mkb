@@ -8,31 +8,37 @@ if(File.Exists("localhost.key"))
 
 builder.Services.AddGrpc();
 
-builder.Services.AddSingleton<OpenGLScreenshotService>();
-builder.Services.AddHostedService<OpenGLScreenshotService>(provider => provider.GetRequiredService<OpenGLScreenshotService>());
-
-//builder.Services.AddSingleton<IFoo, Foo>();
-//builder.Services.AddSingleton<DllHookService>();
 var useBlazor = Environment.GetCommandLineArgs()
     .Any(arg => arg.ToLower().Equals("useblazor"));
+
+var useOpenGL = Environment.GetCommandLineArgs()
+    .Any(arg => arg.ToLower().Equals("useopengl"));
 
 if (useBlazor)
 {
     builder.Services.AddRazorPages();
     builder.Services.AddServerSideBlazor();
-    builder.Services.AddSingleton<ScreenshotService>();
-    builder.Services.AddHostedService<ScreenshotService>(provider => provider.GetRequiredService<ScreenshotService>());
+    if(useOpenGL)
+    {
+        builder.Services.AddSingleton<OpenGLScreenshotService>();
+        builder.Services.AddHostedService<OpenGLScreenshotService>(provider => provider.GetRequiredService<OpenGLScreenshotService>());
+    }
+    else
+    {
+        builder.Services.AddSingleton<ScreenshotService>();
+        builder.Services.AddHostedService<ScreenshotService>(provider => provider.GetRequiredService<ScreenshotService>());
+    }
 }
 
 var app = builder.Build();
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Error");
-    app.UseHsts();
-}
-
 if(useBlazor)
 {
+    if (!app.Environment.IsDevelopment())
+    {
+        app.UseExceptionHandler("/Error");
+        app.UseHsts();
+    }
+
     app.UseStaticFiles();
     app.UseRouting();
     app.MapBlazorHub();
@@ -47,13 +53,3 @@ var host = Environment.GetCommandLineArgs()
     .FirstOrDefault(arg => arg.ToLower().StartsWith("http"))
     ?? "https://localhost";
 app.Run(host);
-
-public interface IFoo
-{
-
-}
-
-public class Foo : IFoo
-{
-
-}
