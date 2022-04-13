@@ -17,6 +17,8 @@ var useOpenGL = Environment.GetCommandLineArgs()
 var useMonoGame = Environment.GetCommandLineArgs()
     .Any(arg => arg.ToLower().Equals("usemonogame"));
 
+var useDirectX = Environment.GetCommandLineArgs()
+    .Any(arg => arg.ToLower().Equals("usedirectx"));
 
 if (useBlazor)
 {
@@ -33,6 +35,11 @@ else if(useMonoGame)
 {
     builder.Services.AddSingleton<MonoGameScreenshotService>();
     builder.Services.AddHostedService<MonoGameScreenshotService>(provider => provider.GetRequiredService<MonoGameScreenshotService>());
+}
+else if(useDirectX)
+{
+    builder.Services.AddSingleton<DirectXScreenshotCapture>();
+    builder.Services.AddHostedService<DirectXScreenshotCapture>(provider => provider.GetRequiredService<DirectXScreenshotCapture>());
 }
 else
 {

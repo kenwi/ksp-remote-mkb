@@ -3,6 +3,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Server.Services
 {
+
     public class OpenGLScreenshotService : Game, IHostedService
     {
         public Task StartAsync(CancellationToken cancellationToken)
