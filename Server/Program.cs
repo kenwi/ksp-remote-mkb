@@ -18,16 +18,17 @@ if (useBlazor)
 {
     builder.Services.AddRazorPages();
     builder.Services.AddServerSideBlazor();
-    if(useOpenGL)
-    {
-        builder.Services.AddSingleton<OpenGLScreenshotService>();
-        builder.Services.AddHostedService<OpenGLScreenshotService>(provider => provider.GetRequiredService<OpenGLScreenshotService>());
-    }
-    else
-    {
-        builder.Services.AddSingleton<ScreenshotService>();
-        builder.Services.AddHostedService<ScreenshotService>(provider => provider.GetRequiredService<ScreenshotService>());
-    }
+}
+
+if (useOpenGL)
+{
+    builder.Services.AddSingleton<OpenGLScreenshotService>();
+    builder.Services.AddHostedService<OpenGLScreenshotService>(provider => provider.GetRequiredService<OpenGLScreenshotService>());
+}
+else
+{
+    builder.Services.AddSingleton<ScreenshotService>();
+    builder.Services.AddHostedService<ScreenshotService>(provider => provider.GetRequiredService<ScreenshotService>());
 }
 
 var app = builder.Build();
