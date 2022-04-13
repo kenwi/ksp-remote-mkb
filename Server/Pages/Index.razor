@@ -9,7 +9,7 @@
 @inject ScreenshotService ScreenshotService
 
 <PageTitle>Index</PageTitle>
-<img src="@Image64" width="@ResolutionX" height="@ResolutionY" @onmousedown="@MouseClick" @onmouseup="@MouseUp" @onmousemove="@MouseMove" />
+<img src="@Image64" width="@ResolutionX" height="@ResolutionY" @onmousedown="@HandleMouseEvents" @onmouseup="@HandleMouseEvents" @onmousemove="@HandleMouseEvents" />
 
 @code
 {
@@ -56,7 +56,7 @@
     {
         UpdateFrames = UpdateFrames ?? false;
         RpcEndpoint = RpcEndpoint ?? "https://localhost";
-        FrameRate = 1000/FrameRate ?? 100;
+        FrameRate = 1000 / FrameRate ?? 100;
         (ResolutionX, ResolutionY) = (ResolutionX ?? 1600, ResolutionY ?? 900);
 
         try
@@ -72,7 +72,7 @@
             client = new Remote.RemoteClient(channel);
             monitor = client.GetMonitorResolution(new Empty());
 
-            if(UpdateFrames == false)
+            if (UpdateFrames == false)
                 RunPeriodicImageUpdate(100);
         }
         catch (Exception)
@@ -83,62 +83,35 @@
         base.OnInitialized();
     }
 
-    void CalculateRatio()
+    void CalculateServerAndClientResolutionRatio()
     {
         if (ResolutionX is null || ResolutionY is null)
-            throw new Exception("No resolution set");
+            throw new Exception("No client resolution set");
+        if (monitor is null)
+            throw new Exception("No server monitor resolution set");
 
         xmod = (float)monitor.X / (int)ResolutionX;
         ymod = (float)monitor.Y / (int)ResolutionY;
     }
 
-    void SetOutboundEvent(double x, double y, EventType eventType)
-    {
-        if (outboundEvent is null)
-            throw new Exception("No outboundEvent exists");
-
-        outboundEvent.X = (int)(x * xmod) - 50;
-        outboundEvent.Y = (int)(y * ymod) - 25;
-        outboundEvent.Type = EventType.Leftdown;
-    }
-
-    protected async void MouseUp(MouseEventArgs e)
+    protected async void HandleMouseEvents(MouseEventArgs e)
     {
         if ((DateTime.Now - last).Milliseconds < 100)
             return;
 
         if (outboundEvent is null || client is null)
             throw new Exception("Either no outboundEvent or no client exists");
-;
 
-        CalculateRatio();
-        SetOutboundEvent(e.ClientX, e.ClientY, EventType.Leftup);
+        CalculateServerAndClientResolutionRatio();
+        outboundEvent.X = (int)(e.ClientX * xmod) - 50;
+        outboundEvent.Y = (int)(e.ClientY * ymod) - 25;
+        outboundEvent.Type = e.Type switch
+        {
+            "mousemove" => EventType.Move,
+            "mousedown" => EventType.Leftdown,
+            "mouseup" => EventType.Leftup
+        };
         await client.SendMouseEventAsync(outboundEvent);
     }
 
-    protected async void MouseClick(MouseEventArgs e)
-    {
-        if ((DateTime.Now - last).Milliseconds < 100)
-            return;
-
-        if (outboundEvent is null || client is  null)
-            throw new Exception("Either no outboundEvent or no client exists");
-
-        CalculateRatio();
-        SetOutboundEvent(e.ClientX, e.ClientY, EventType.Leftdown);
-        await client.SendMouseEventAsync(outboundEvent);
-    }
-
-    protected async void MouseMove(MouseEventArgs e)
-    {
-        if ((DateTime.Now - last).Milliseconds < 10)
-            return;
-
-        if (outboundEvent is null || client is  null)
-            throw new Exception("Either no outboundEvent or no client exists");
-
-        CalculateRatio();
-        SetOutboundEvent(e.ClientX, e.ClientY, EventType.Move);
-        await client.SendMouseEventAsync(outboundEvent);
-    }
 }
