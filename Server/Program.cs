@@ -8,6 +8,9 @@ if(File.Exists("localhost.key"))
 
 builder.Services.AddGrpc();
 
+builder.Services.AddSingleton<OpenGLScreenshotService>();
+builder.Services.AddHostedService<OpenGLScreenshotService>(provider => provider.GetRequiredService<OpenGLScreenshotService>());
+
 //builder.Services.AddSingleton<IFoo, Foo>();
 //builder.Services.AddSingleton<DllHookService>();
 var useBlazor = Environment.GetCommandLineArgs()
