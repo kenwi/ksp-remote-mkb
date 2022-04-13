@@ -14,6 +14,10 @@ var useBlazor = Environment.GetCommandLineArgs()
 var useOpenGL = Environment.GetCommandLineArgs()
     .Any(arg => arg.ToLower().Equals("useopengl"));
 
+var useMonoGame = Environment.GetCommandLineArgs()
+    .Any(arg => arg.ToLower().Equals("usemonogame"));
+
+
 if (useBlazor)
 {
     builder.Services.AddRazorPages();
@@ -24,6 +28,11 @@ if (useOpenGL)
 {
     builder.Services.AddSingleton<OpenGLScreenshotService>();
     builder.Services.AddHostedService<OpenGLScreenshotService>(provider => provider.GetRequiredService<OpenGLScreenshotService>());
+}
+else if(useMonoGame)
+{
+    builder.Services.AddSingleton<MonoGameScreenshotService>();
+    builder.Services.AddHostedService<MonoGameScreenshotService>(provider => provider.GetRequiredService<MonoGameScreenshotService>());
 }
 else
 {
