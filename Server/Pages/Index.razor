@@ -6,16 +6,27 @@
 @using SixLabors.ImageSharp.PixelFormats
 @using Server.Services
 
-@inject ScreenshotService ScreenshotService
+@inject IScreenshotService ScreenshotService
 
 <PageTitle>Index</PageTitle>
-<img src="@Image64" width="@ResolutionX" height="@ResolutionY" @onmousedown="@HandleMouseEvents" @onmouseup="@HandleMouseEvents" @onmousemove="@HandleMouseEvents" />
+@if(DisableInput!.Value)
+{
+    <img src="@Image64" width="@ResolutionX" height="@ResolutionY" />
+}
+else
+{
+    <img src="@Image64" width="@ResolutionX" height="@ResolutionY" @onmousedown="@HandleMouseEvents" @onmouseup="@HandleMouseEvents" @onmousemove="@HandleMouseEvents" />
+}
 
 @code
 {
     [Parameter]
     [SupplyParameterFromQuery(Name = "updateframes")]
     public bool? UpdateFrames { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "disableinput")]
+    public bool? DisableInput { get; set; }
 
     [Parameter]
     [SupplyParameterFromQuery(Name = "framerate")]
@@ -54,7 +65,8 @@
 
     protected override void OnInitialized()
     {
-        UpdateFrames = UpdateFrames ?? false;
+        DisableInput = DisableInput ?? true;
+        UpdateFrames = UpdateFrames ?? true;
         RpcEndpoint = RpcEndpoint ?? "https://localhost";
         FrameRate = 1000 / FrameRate ?? 100;
         (ResolutionX, ResolutionY) = (ResolutionX ?? 1600, ResolutionY ?? 900);
@@ -72,8 +84,8 @@
             client = new Remote.RemoteClient(channel);
             monitor = client.GetMonitorResolution(new Empty());
 
-            if (UpdateFrames == false)
-                RunPeriodicImageUpdate(100);
+            if (UpdateFrames == true)
+                RunPeriodicImageUpdate(FrameRate.Value);
         }
         catch (Exception)
         {
