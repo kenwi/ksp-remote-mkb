@@ -2,7 +2,7 @@
 
 namespace Server.Services
 {
-    public class ScreenshotService : BackgroundService
+    public class ScreenshotService : BackgroundService, IScreenshotService
     {
         public string Image64 { get; set; } = string.Empty;
 
