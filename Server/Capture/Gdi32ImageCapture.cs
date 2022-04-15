@@ -8,7 +8,7 @@ namespace Server
     /// <summary>
     /// Provides functions to capture the entire screen, or a particular window, and save it to a file.
     /// </summary>
-    public class ScreenCapture
+    public class Gdi32ImageCapture
     {
         /// <summary>
         /// Creates an Image object containing a screen shot of the entire desktop

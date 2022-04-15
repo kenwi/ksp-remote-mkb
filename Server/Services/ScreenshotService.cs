@@ -5,8 +5,16 @@ namespace Server.Services
     public class ScreenshotService : BackgroundService, IScreenshotService
     {
         public string Image64 { get; set; } = string.Empty;
+        public int FrameRate { get; set; } = 100;
 
-        ScreenCapture sc = new();
+        Gdi32ImageCapture sc = new();
+        private readonly ILogger<ScreenshotService> logger;
+
+        public ScreenshotService(ILogger<ScreenshotService> logger)
+        {
+            this.logger = logger;
+            logger?.LogInformation($"Starting service at targeted {FrameRate} ms");
+        }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
