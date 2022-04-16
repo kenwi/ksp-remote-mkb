@@ -5,42 +5,29 @@ using Server;
 using Server.Services;
 
 #if DEBUG
-    var ds = new DirectXScreenshotService();
-    ds.Initialize();
-    ds.Capture();
+
+var imageCapture = new DirectXImageCapture();
+imageCapture.Initialize();
+imageCapture.Capture();
+;
+
 #else
-    BenchmarkRunner.Run<DirectXScreenshot>();
-    BenchmarkRunner.Run<Gdi32Screenshot>();
+BenchmarkRunner.Run<Screenshot>();
 #endif
 
-public class DirectXScreenshot
+public class Screenshot
 {
-    DirectXScreenshotService ds;
-
-    [GlobalSetup]
-    public void Setup()
-    {
-        ds = new DirectXScreenshotService();
-        ds.Initialize();
-    }
-    
-    [Benchmark]
-    public void CaptureImage()
-    {
-        ds.Capture();
-    }
-}
-
-public class Gdi32Screenshot
-{
-    ScreenCapture sc = new ();
-    Graphics graphics = null;
+    DirectXImageCapture ds = new();
+    Gdi32ImageCapture sc = new();
     MemoryStream memoryStream = new();
+    Graphics graphics = null;
     Image? image;
 
     [GlobalSetup]
     public void Setup()
     {
+        ds.Initialize();
+
         using var img = sc.CaptureScreen();
         graphics = Graphics.FromImage(img);
         img.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Jpeg);
@@ -48,12 +35,19 @@ public class Gdi32Screenshot
     }
 
     [Benchmark]
-    public MemoryStream CaptureImage()
+    public void CaptureImageDirectX()
+    {
+        ds.Capture();
+    }
+
+    [Benchmark]
+    public void CaptureImageGdi32()
     {
         using var stream = new MemoryStream();
         using var img = sc.CaptureScreen();
         graphics.DrawImage(img, 1600, 1200);
         img.Save(stream, System.Drawing.Imaging.ImageFormat.Jpeg);
-        return stream;
     }
+
+
 }
