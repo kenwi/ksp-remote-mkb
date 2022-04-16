@@ -1,10 +1,10 @@
 using Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-if(File.Exists("localhost.pem")) 
-    builder.Configuration["Kestrel:Certificates:Default:Path"] = Path.Combine(builder.Environment.ContentRootPath, "localhost.pem");
-if(File.Exists("localhost.key"))
-    builder.Configuration["Kestrel:Certificates:Default:KeyPath"]= Path.Combine(builder.Environment.ContentRootPath, "localhost.key");
+if(File.Exists("hub.m0b.services.pem")) 
+    builder.Configuration["Kestrel:Certificates:Default:Path"] = Path.Combine(builder.Environment.ContentRootPath, "hub.m0b.services.pem");
+if(File.Exists("hub.m0b.services.key"))
+    builder.Configuration["Kestrel:Certificates:Default:KeyPath"]= Path.Combine(builder.Environment.ContentRootPath, "hub.m0b.services.key");
 
 builder.Services.AddGrpc();
 
@@ -20,6 +20,7 @@ var useMonoGame = Environment.GetCommandLineArgs()
 var useDirectX = Environment.GetCommandLineArgs()
     .Any(arg => arg.ToLower().Equals("usedirectx"));
 
+useBlazor = true;
 if (useBlazor)
 {
     builder.Services.AddRazorPages();
@@ -38,8 +39,8 @@ else if(useMonoGame)
 }
 else if(useDirectX)
 {
-    builder.Services.AddSingleton<DirectXScreenshotCapture>();
-    builder.Services.AddHostedService<DirectXScreenshotCapture>(provider => provider.GetRequiredService<DirectXScreenshotCapture>());
+    builder.Services.AddSingleton<DirectXScreenshotService>();
+    builder.Services.AddHostedService<DirectXScreenshotService>(provider => provider.GetRequiredService<DirectXScreenshotService>());
 }
 else
 {

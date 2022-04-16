@@ -1,14 +1,5 @@
 ﻿using System.Drawing;
 using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
-using SharpDX;
-using SharpDX.Direct3D;
-using SharpDX.Direct3D11;
-using SharpDX.DXGI;
-using SharpDX.Mathematics.Interop;
-using SharpDX.WIC;
-using Device = SharpDX.Direct3D11.Device;
-using MapFlags = SharpDX.Direct3D11.MapFlags;
 
 namespace Server.Services
 {
@@ -24,8 +15,11 @@ namespace Server.Services
             logger?.LogInformation($"Initialized");
         }
 
-        public string Image64 { get; set; } = string.Empty;
-        public int FrameRate { get; set; } = 100;
+        public int FrameRate { get; set; } = 25;
+        public int FrameCount => imageCapture.FrameCount;
+        public string Image64 { get; set; }
+
+        public Bitmap Bitmap { get; set; }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -33,7 +27,12 @@ namespace Server.Services
             while (true)
             {
                 await imageCapture.Capture();
+                using var stream = new MemoryStream();
+                using var bitmap = imageCapture.Bitmap;
+                bitmap.Save(stream, ImageFormat.Jpeg);
+                Image64 = "data:image/jpeg;base64," + Convert.ToBase64String(stream.ToArray());
                 await Task.Delay(FrameRate, stoppingToken);
             }
         }
     }
+}

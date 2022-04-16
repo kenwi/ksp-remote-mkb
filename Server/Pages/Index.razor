@@ -1,15 +1,23 @@
 ﻿@page "/"
+@using Blazor.Extensions
+@using Blazor.Extensions.Canvas.Canvas2D
+@using Blazor.Extensions.Canvas.WebGL
 @using Grpc.Net.Client
 @using Microsoft.AspNetCore.Components.Web
 @using Blazor.Extensions.Canvas
 @using SixLabors.ImageSharp
 @using SixLabors.ImageSharp.PixelFormats
 @using Server.Services
+@using static System.Net.WebRequestMethods
 
-@inject IScreenshotService ScreenshotService
-
+@inject DirectXScreenshotService ScreenshotService
 <PageTitle>Index</PageTitle>
-@if(DisableInput!.Value)
+
+<p>Frames: @FrameCount FPS: @Fps</p>
+
+@*<BECanvas Width="300" Height="400" @ref="canvasReference"></BECanvas>*@
+
+@if (DisableInput!.Value)
 {
     <img src="@Image64" width="@ResolutionX" height="@ResolutionY" />
 }
@@ -29,10 +37,6 @@ else
     public bool? DisableInput { get; set; }
 
     [Parameter]
-    [SupplyParameterFromQuery(Name = "framerate")]
-    public int? FrameRate { get; set; }
-
-    [Parameter]
     [SupplyParameterFromQuery(Name = "x")]
     public int? ResolutionX { get; set; }
 
@@ -44,31 +48,75 @@ else
     [SupplyParameterFromQuery(Name = "rpcendpoint")]
     public string? RpcEndpoint { get; set; }
 
+    public int FrameCount { get; set; } = 0;
+    public string? Fps { get; set; } = 0.ToString();
+
+
     Remote.RemoteClient? client;
     MouseEvent? outboundEvent = new();
     protected string Image64 { get; set; } = string.Empty;
-    Random rng = new Random();
     Resolution monitor = new();
     DateTime last = new();
-    ScreenCapture sc = new();
+    Gdi32ImageCapture sc = new();
     float xmod = 0, ymod = 0;
+
+
+    ElementReference elementRef;
+    Canvas2DContext context;
+    BECanvasComponent canvasReference;
+    Texture texture;
+    ShaderProgram shaderProgram;
 
     async void RunPeriodicImageUpdate(int millisecondsDelay)
     {
+        DateTime lastRender = DateTime.Now, startTime = DateTime.Now, lastUpdate = DateTime.Now;
+        var deltaTimes = new List<double>();
         while (true)
         {
+            var dt = (DateTime.Now - lastRender).TotalSeconds;
+            deltaTimes.Add(dt);
+
+            if ((DateTime.Now - lastUpdate).Seconds > 1)
+            {
+                FrameCount = ScreenshotService.FrameCount;
+                Fps = $"{1 / deltaTimes.Average():F}";
+                deltaTimes.Clear();
+                lastUpdate = DateTime.Now;
+            }
+
             Image64 = ScreenshotService.Image64;
+            lastRender = DateTime.Now;
             StateHasChanged();
-            await Task.Delay(millisecondsDelay);
+            await Task.Delay(millisecondsDelay); // Note: We should know how long each frame takes to capture to account for this
         }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        return;
+
+        var gl = await canvasReference.CreateWebGLAsync(new WebGLContextAttributes
+            {
+                PreserveDrawingBuffer = true,
+                PowerPreference = WebGLContextAttributes.POWER_PREFERENCE_HIGH_PERFORMANCE
+            });
+        await gl.ClearColorAsync(0.1f, 0.1f, 0.3f, 1);
+        await gl.EnableAsync(EnableCap.DEPTH_TEST);
+        await gl.ClearAsync(BufferBits.COLOR_BUFFER_BIT | BufferBits.DEPTH_BUFFER_BIT);
+        await gl.EnableAsync(EnableCap.CULL_FACE);
+        await gl.FrontFaceAsync(FrontFaceDirection.CCW);
+        await gl.CullFaceAsync(Face.BACK);
+
+        // https://github.com/DominikNITA/Blazor3D-Playground/blob/d2c890dda01a3f7b383fae8d88df1040d03885e2/WebGLCanvasExtension_Playground/Pages/DataToTextureSample.razor.cs
+        //var vertexShader = await Http.GetStringAsync()
+        //shaderProgram = await ShaderProgram.InitShaderProgram(gl, )
     }
 
     protected override void OnInitialized()
     {
         DisableInput = DisableInput ?? true;
         UpdateFrames = UpdateFrames ?? true;
-        RpcEndpoint = RpcEndpoint ?? "https://localhost";
-        FrameRate = 1000 / FrameRate ?? 100;
+        RpcEndpoint = RpcEndpoint ?? "https://10.0.0.9";
         (ResolutionX, ResolutionY) = (ResolutionX ?? 1600, ResolutionY ?? 900);
 
         try
@@ -85,7 +133,7 @@ else
             monitor = client.GetMonitorResolution(new Empty());
 
             if (UpdateFrames == true)
-                RunPeriodicImageUpdate(FrameRate.Value);
+                RunPeriodicImageUpdate(ScreenshotService.FrameRate);
         }
         catch (Exception)
         {
@@ -108,15 +156,17 @@ else
 
     protected async void HandleMouseEvents(MouseEventArgs e)
     {
-        if ((DateTime.Now - last).Milliseconds < 100)
+        // Note: Should probably be divided by two to ensure movement within the next frame
+        if ((DateTime.Now - last).Milliseconds < ScreenshotService.FrameRate)
             return;
 
         if (outboundEvent is null || client is null)
             throw new Exception("Either no outboundEvent or no client exists");
 
         CalculateServerAndClientResolutionRatio();
-        outboundEvent.X = (int)(e.ClientX * xmod) - 50;
-        outboundEvent.Y = (int)(e.ClientY * ymod) - 25;
+        var (offsetX, offsetY) = (50, 25);
+        outboundEvent.X = (int)(e.ClientX * xmod) - offsetX;
+        outboundEvent.Y = (int)(e.ClientY * ymod) - offsetY;
         outboundEvent.Type = e.Type switch
         {
             "mousemove" => EventType.Move,
@@ -124,6 +174,7 @@ else
             "mouseup" => EventType.Leftup
         };
         await client.SendMouseEventAsync(outboundEvent);
+        last = DateTime.Now;
     }
 
 }
