@@ -26,16 +26,6 @@
 
     public string? Message { get; set; }
 
-    async void RunPeriodicUpdate(int millisecondsDelay)
-    {
-        while (true)
-        {
-            frameNum = frameIndex.ToString();
-            StateHasChanged();
-            await Task.Delay(millisecondsDelay);
-        }
-    }
-
     protected override void OnInitialized()
     {
         Fps ??= 33;
@@ -67,16 +57,13 @@
         }
     }
 
-    public async void OnButton1Click(MouseEventArgs e)
+    private async void RunPeriodicUpdate(int millisecondsDelay)
     {
-        try
+        while (true)
         {
-            var img = ScreenshotService.Image64;
-            await JS.InvokeVoidAsync("RenderImage", img);
-        }
-        catch (JSException ex)
-        {
-            Message = ex.Message;
+            frameNum = frameIndex.ToString();
+            StateHasChanged();
+            await Task.Delay(millisecondsDelay);
         }
     }
 }

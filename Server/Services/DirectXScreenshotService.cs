@@ -5,6 +5,11 @@ namespace Server.Services
 {
     public class DirectXScreenshotService : BackgroundService, IScreenshotService
     {
+        public int FrameRate { get; set; } = 25;
+        public int FrameCount => imageCapture.FrameCount;
+        public string Image64 { get; set; }
+        public Bitmap Bitmap { get; set; }
+        public byte[] Image { get; set; }
         private readonly ILogger<DirectXScreenshotService>? logger;
         private readonly DirectXImageCapture imageCapture = new();
 
@@ -15,12 +20,6 @@ namespace Server.Services
             logger?.LogInformation($"Initialized");
         }
 
-        public int FrameRate { get; set; } = 25;
-        public int FrameCount => imageCapture.FrameCount;
-        public string Image64 { get; set; }
-
-        public Bitmap Bitmap { get; set; }
-        public byte[] Image { get; set; }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             logger?.LogInformation($"Starting service at targeted rate of {FrameRate} ms");
@@ -31,8 +30,7 @@ namespace Server.Services
                 using var bitmap = imageCapture.Bitmap;
                 bitmap.Save(stream, ImageFormat.Jpeg);
                 var bytes = stream.ToArray();
-                Image = bytes;
-                Image64 = "data:image/jpeg;base64," + Convert.ToBase64String(bytes);
+                (Image, Image64) = (bytes, "data:image/jpeg;base64," + Convert.ToBase64String(bytes));
                 await Task.Delay(FrameRate, stoppingToken);
             }
         }
