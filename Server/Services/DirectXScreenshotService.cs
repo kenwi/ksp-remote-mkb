@@ -20,7 +20,7 @@ namespace Server.Services
         public string Image64 { get; set; }
 
         public Bitmap Bitmap { get; set; }
-
+        public byte[] Image { get; set; }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             logger?.LogInformation($"Starting service at targeted rate of {FrameRate} ms");
@@ -30,7 +30,9 @@ namespace Server.Services
                 using var stream = new MemoryStream();
                 using var bitmap = imageCapture.Bitmap;
                 bitmap.Save(stream, ImageFormat.Jpeg);
-                Image64 = "data:image/jpeg;base64," + Convert.ToBase64String(stream.ToArray());
+                var bytes = stream.ToArray();
+                Image = bytes;
+                Image64 = "data:image/jpeg;base64," + Convert.ToBase64String(bytes);
                 await Task.Delay(FrameRate, stoppingToken);
             }
         }

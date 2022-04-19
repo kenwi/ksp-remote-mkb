@@ -1,0 +1,82 @@
+﻿@page "/render"
+@using Blazor.Extensions
+@using Blazor.Extensions.Canvas
+@using Blazor.Extensions.Canvas.WebGL
+@using Server.Services
+@using System.Drawing
+
+@inject IJSRuntime JS
+@inject DirectXScreenshotService ScreenshotService
+
+<PageTitle>Render</PageTitle>
+
+<BECanvas Id="canvas" Width="800" Height="600" @ref="canvasReference"></BECanvas>
+
+<p>Framenum: @frameNum</p>
+@code
+{
+    BECanvasComponent? canvasReference = null;
+    Renderer? renderer;
+    string frameNum = "";
+    int frameIndex = 0;
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "fps")]
+    public int? Fps { get; set; }
+
+    public string? Message { get; set; }
+
+    async void RunPeriodicUpdate(int millisecondsDelay)
+    {
+        while (true)
+        {
+            frameNum = frameIndex.ToString();
+            StateHasChanged();
+            await Task.Delay(millisecondsDelay);
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        Fps ??= 33;
+
+        RunPeriodicUpdate(1000);
+        base.OnInitialized();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && canvasReference is not null && Fps is not null)
+        {
+            renderer = new Renderer(canvasReference, ScreenshotService, JS);
+
+            var timer = new System.Timers.Timer(Fps.Value);
+            timer.Elapsed += async (s, e) =>
+            {
+                try
+                {
+                    await renderer.Draw();
+                    frameIndex++;
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            };
+            timer.Start();
+        }
+    }
+
+    public async void OnButton1Click(MouseEventArgs e)
+    {
+        try
+        {
+            var img = ScreenshotService.Image64;
+            await JS.InvokeVoidAsync("RenderImage", img);
+        }
+        catch (JSException ex)
+        {
+            Message = ex.Message;
+        }
+    }
+}
