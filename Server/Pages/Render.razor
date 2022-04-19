@@ -4,52 +4,67 @@
 @using Blazor.Extensions.Canvas.WebGL
 @using Server.Services
 @using System.Drawing
+@using System.ComponentModel.DataAnnotations
 
 @inject IJSRuntime JS
 @inject DirectXScreenshotService ScreenshotService
 
 <PageTitle>Render</PageTitle>
+<p>@Message</p>
+<BECanvas Id="canvas" Width="800" Height="600" @ref="canvasReference" ></BECanvas>
 
-<BECanvas Id="canvas" Width="800" Height="600" @ref="canvasReference"></BECanvas>
-
-<p>Framenum: @frameNum</p>
+<p>Framenum: @frameNum Fps: @avgFps</p>
 @code
 {
     BECanvasComponent? canvasReference = null;
     Renderer? renderer;
+
     string frameNum = "";
+    string avgFps = "";
+
     int frameIndex = 0;
+    List<double> deltaTimes;
 
     [Parameter]
-    [SupplyParameterFromQuery(Name = "fps")]
-    public int? Fps { get; set; }
+    [Range(1, 1000)]
+    [SupplyParameterFromQuery(Name = "delay")]
+    public int? Delay { get; set; }
 
     public string? Message { get; set; }
 
     protected override void OnInitialized()
     {
-        Fps ??= 33;
-
+        Delay ??= 250;
+        avgFps = "0.00";
+        deltaTimes = new();
         RunPeriodicUpdate(1000);
         base.OnInitialized();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && canvasReference is not null && Fps is not null)
+        if (firstRender && canvasReference is not null && Delay is not null && JS is not null)
         {
+            await JS.InvokeVoidAsync("SetupEvents", DotNetObjectReference.Create(this));
             renderer = new Renderer(canvasReference, ScreenshotService, JS);
-
-            var timer = new System.Timers.Timer(Fps.Value);
+            var timer = new System.Timers.Timer(Delay.Value);
+            var lastRender = DateTime.Now;
             timer.Elapsed += async (s, e) =>
             {
                 try
                 {
+                    var dt = (DateTime.Now - lastRender).TotalSeconds;
+                    deltaTimes.Add(dt);
+
                     await renderer.Draw();
                     frameIndex++;
+                    lastRender = DateTime.Now;
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    Message = ex.ToString();
+                    StateHasChanged();
+                    timer.Stop();
                     throw;
                 }
             };
@@ -61,9 +76,32 @@
     {
         while (true)
         {
+            while(deltaTimes.Count == 0)
+                await Task.Delay(millisecondsDelay);
+
             frameNum = frameIndex.ToString();
+            avgFps = $"{1 / deltaTimes.Average():F}";
+            deltaTimes.Clear();
             StateHasChanged();
             await Task.Delay(millisecondsDelay);
         }
+    }
+
+    [JSInvokable("eventMouseDown")]
+    public void eventMouseDown(int x, int y)
+    {
+        ;
+    }
+    
+    [JSInvokable("eventMouseUp")]
+    public void eventMouseUp(int x, int y)
+    {
+        ;
+    }
+
+    [JSInvokable("eventMouseMove")]
+    public void eventMouseMove(int x, int y)
+    {
+        ;
     }
 }
