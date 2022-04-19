@@ -30,7 +30,7 @@ namespace Server.Services
                 using var bitmap = imageCapture.Bitmap;
                 bitmap.Save(stream, ImageFormat.Jpeg);
                 var bytes = stream.ToArray();
-                (Image, Image64) = (bytes, "data:image/jpeg;base64," + Convert.ToBase64String(bytes));
+                (Image, Image64) = (bytes, $"data:image/jpeg;base64,{Convert.ToBase64String(bytes)}");
                 await Task.Delay(FrameRate, stoppingToken);
             }
         }
