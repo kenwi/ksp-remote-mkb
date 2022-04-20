@@ -13,7 +13,7 @@
 <p>@Message</p>
 <BECanvas Id="canvas" Width="800" Height="600" @ref="canvasReference" ></BECanvas>
 
-<p>Framenum: @frameNum Fps: @avgFps</p>
+<p>Framenum: @frameNum Fps: @avgFps RenderTime: @avgRenderTime</p>
 @code
 {
     BECanvasComponent? canvasReference = null;
@@ -21,9 +21,11 @@
 
     string frameNum = "";
     string avgFps = "";
+    string avgRenderTime = "";
 
     int frameIndex = 0;
     List<double> deltaTimes;
+    List<double> renderTimes;
 
     [Parameter]
     [Range(1, 1000)]
@@ -37,6 +39,7 @@
         Delay ??= 250;
         avgFps = "0.00";
         deltaTimes = new();
+        renderTimes = new();        
         RunPeriodicUpdate(1000);
         base.OnInitialized();
     }
@@ -47,16 +50,20 @@
         {
             await JS.InvokeVoidAsync("SetupEvents", DotNetObjectReference.Create(this));
             renderer = new Renderer(canvasReference, ScreenshotService, JS);
-            var timer = new System.Timers.Timer(Delay.Value);
             var lastRender = DateTime.Now;
-            timer.Elapsed += async (s, e) =>
+
+            while(true)
             {
                 try
                 {
                     var dt = (DateTime.Now - lastRender).TotalSeconds;
                     deltaTimes.Add(dt);
 
+                    var last = DateTime.Now;
                     await renderer.Draw();
+                    var lastRenderTime = (DateTime.Now - last).TotalSeconds;
+                    renderTimes.Add(lastRenderTime);
+
                     frameIndex++;
                     lastRender = DateTime.Now;
                 }
@@ -64,11 +71,10 @@
                 {
                     Message = ex.ToString();
                     StateHasChanged();
-                    timer.Stop();
-                    throw;
+                    break;
                 }
-            };
-            timer.Start();
+                await Task.Delay(Delay.Value);
+            }
         }
     }
 
@@ -81,7 +87,10 @@
 
             frameNum = frameIndex.ToString();
             avgFps = $"{1 / deltaTimes.Average():F}";
+            avgRenderTime = $"{1 / renderTimes.Average():F} ms";
+            
             deltaTimes.Clear();
+            renderTimes.Clear();
             StateHasChanged();
             await Task.Delay(millisecondsDelay);
         }
