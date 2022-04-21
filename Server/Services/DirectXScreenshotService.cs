@@ -12,6 +12,7 @@ namespace Server.Services
         public byte[] Image { get; set; }
         private readonly ILogger<DirectXScreenshotService>? logger;
         private readonly DirectXImageCapture imageCapture = new();
+        private MemoryStream stream = new();
 
         public DirectXScreenshotService(ILogger<DirectXScreenshotService>? logger)
         {
@@ -26,11 +27,11 @@ namespace Server.Services
             while (true)
             {
                 await imageCapture.Capture();
-                using var stream = new MemoryStream();
-                using var bitmap = imageCapture.Bitmap;
+                var bitmap = imageCapture.Bitmap;
                 bitmap.Save(stream, ImageFormat.Jpeg);
                 var bytes = stream.ToArray();
                 (Image, Image64) = (bytes, $"data:image/jpeg;base64,{Convert.ToBase64String(bytes)}");
+                stream.Position = 0;
                 await Task.Delay(FrameRate, stoppingToken);
             }
         }

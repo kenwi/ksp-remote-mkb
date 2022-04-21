@@ -20,7 +20,6 @@ namespace Server
         protected internal DisplayModeRotation? DisplayRotation;
         protected internal Texture2D? TransformTexture;
 
-        private Bitmap bitmap;
         private Rectangle boundsRect;
         public MemoryStream Stream { get; set; }
         public Bitmap Bitmap { get; set; }
@@ -38,10 +37,10 @@ namespace Server
             Height = output.Description.DesktopBounds.Bottom;
             DuplicatedOutput = output.DuplicateOutput(Device);
 
-            bitmap = new Bitmap(Width, Height, PixelFormat.Format32bppArgb);
+            Bitmap = new Bitmap(Width, Height, PixelFormat.Format32bppArgb);
             boundsRect = new Rectangle(0, 0, Width, Height);
 
-            Stream = new MemoryStream();
+            //Stream = new MemoryStream();
 
             //Texture used to copy contents from the GPU to be accesible by the CPU.
             StagingTexture = new Texture2D(Device, new Texture2DDescription
@@ -220,7 +219,7 @@ namespace Server
                 }
 
                 ////Copy pixels from screen capture Texture to the GDI bitmap.
-                var mapDest = bitmap.LockBits(boundsRect, ImageLockMode.WriteOnly, bitmap.PixelFormat);
+                var mapDest = Bitmap.LockBits(boundsRect, ImageLockMode.WriteOnly, Bitmap.PixelFormat);
                 var sourcePtr = data.DataPointer;
                 var destPtr = mapDest.Scan0;
 
@@ -233,39 +232,17 @@ namespace Server
                     sourcePtr = IntPtr.Add(sourcePtr, data.RowPitch);
                     destPtr = IntPtr.Add(destPtr, mapDest.Stride);
                 }
-                
+
                 //Release source and dest locks.
-                bitmap.UnlockBits(mapDest);
+                Bitmap.UnlockBits(mapDest);
 
                 #endregion
 
-
                 //Set frame details.
                 FrameCount++;
-                Bitmap = bitmap.Clone() as Bitmap;
-
-                //Stream = new MemoryStream();
-                //bitmap.Save(Stream, ImageFormat.);
-                //bitmap.Dispose();
-                //bitmap.Dispose();
-                //Bitmap = bitmap.Clone() as Bitmap;
-                //using var stream = new MemoryStream();
-
-                //Image64 = "data:image/jpeg;base64," + Convert.ToBase64String(stream.ToArray());
-                ;
-                //using var scaler = new BitmapScaler(sourcePtr);
-                //var decoder = new BitmapDecoder(new BitmapDecoderInfo(destPtr));
-                //scaler.Initialize(decoder.GetFrame(0), 800, 600, BitmapInterpolationMode.NearestNeighbor);
-                //Image64 = "data:image/jpeg;base64," + Convert.ToBase64String(stream.ToArray());
-
-                //bitmap.Save("Yoyo.bmp", ImageFormat.Bmp);
-                //frame.Path = $"{Project.FullPath}{FrameCount}.png";
-                //frame.Delay = FrameRate.GetMilliseconds();
-                //frame.Image = bitmap;
 
                 //if (IsAcceptingFrames)
                 //    BlockingCollection.Add(frame);
-
 
                 Device.ImmediateContext.UnmapSubresource(StagingTexture, 0);
 
@@ -275,7 +252,6 @@ namespace Server
             catch (SharpDXException se) when (se.ResultCode.Code == SharpDX.DXGI.ResultCode.WaitTimeout.Result.Code)
             {
                 return Task.FromResult(FrameCount);
-                //return FrameCount;
             }
             catch (SharpDXException se) when (se.ResultCode.Code == SharpDX.DXGI.ResultCode.DeviceRemoved.Result.Code || se.ResultCode.Code == SharpDX.DXGI.ResultCode.DeviceReset.Result.Code)
             {
@@ -309,7 +285,7 @@ namespace Server
 
         public void Dispose()
         {
-            bitmap?.Dispose();
+            Bitmap?.Dispose();
         }
     }
 }
