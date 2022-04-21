@@ -21,11 +21,11 @@ function RenderImage(image64) {
 function SetupEvents(dotnetRef) {
     var canvas = document.getElementById("canvas");
     canvas.addEventListener('mousedown', function (evt) {
-        dotnetRef.invokeMethodAsync('eventMouseDown', evt.offsetX, evt.offsetY);
+        dotnetRef.invokeMethodAsync('eventMouseDown', evt.offsetX, evt.offsetY, evt.button);
         console.log("mousedown");
     }, false);
     canvas.addEventListener('mouseup', function (evt) {
-        dotnetRef.invokeMethodAsync('eventMouseUp', evt.offsetX, evt.offsetY);
+        dotnetRef.invokeMethodAsync('eventMouseUp', evt.offsetX, evt.offsetY, evt.button);
         console.log("mouseup");
     }, false);
     canvas.addEventListener('mousemove', function (evt) {

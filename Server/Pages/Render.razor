@@ -2,44 +2,97 @@
 @using Blazor.Extensions
 @using Blazor.Extensions.Canvas
 @using Blazor.Extensions.Canvas.WebGL
+@using Grpc.Net.Client
 @using Server.Services
 @using System.Drawing
 @using System.ComponentModel.DataAnnotations
+@using System.Windows.Input
 
 @inject IJSRuntime JS
 @inject DirectXScreenshotService ScreenshotService
 
 <PageTitle>Render</PageTitle>
 <p>@Message</p>
-<BECanvas Id="canvas" Width="800" Height="600" @ref="canvasReference" ></BECanvas>
+<BECanvas Id="canvas" Width="@Width!.Value" Height="@Height!.Value" @ref="canvasReference"></BECanvas>
+<p>FrameNum: @frameNum Fps: @avgFps RenderTime: @avgRenderTime</p>
 
-<p>Framenum: @frameNum Fps: @avgFps RenderTime: @avgRenderTime</p>
+@if (IsVerified.HasValue && IsVerified.Value)
+{
+    <EditForm class="hstack gap-3" Model="@Input" OnValidSubmit="@HandleSubmit">
+        <div class="col-lg-4"><InputText class="form-control" id="YouTubeLink" @bind-Value="Input.Link" /></div>
+        <button type="submit" class="btn btn-primary">Start</button>
+    </EditForm>
+}
 @code
 {
+    public class InputModel
+    {
+        public string? Link { get; set; }
+    }
+
     BECanvasComponent? canvasReference = null;
     Renderer? renderer;
 
-    string frameNum = "";
-    string avgFps = "";
-    string avgRenderTime = "";
+    InputModel Input = new();
+    Remote.RemoteClient client;
 
-    int frameIndex = 0;
+    string frameNum = string.Empty;
+    string avgFps = string.Empty;
+    string avgRenderTime = string.Empty;
+
+    uint frameIndex = 0;
     List<double> deltaTimes;
     List<double> renderTimes;
 
     [Parameter]
-    [Range(1, 1000)]
     [SupplyParameterFromQuery(Name = "delay")]
     public int? Delay { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "isverified")]
+    public bool? IsVerified { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "inputenabled")]
+    public bool? InputEnabled { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "width")]
+    public long? Width { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "height")]
+    public int? Height { get; set; }
 
     public string? Message { get; set; }
 
     protected override void OnInitialized()
     {
+        Width ??= 1280;
+        Height ??= 720;
+        IsVerified ??= false;
+        InputEnabled ??= false;
         Delay ??= 250;
+        Delay = Math.Max(10, Delay.Value);
         avgFps = "0.00";
         deltaTimes = new();
-        renderTimes = new();        
+        renderTimes = new();
+
+        var identification = new Identification() { Id = Guid.Empty.ToString() };
+        var rpcEndpoint = "https://hub.m0b.services";
+#if DEBUG 
+    rpcEndpoint = "https://localhost";
+#endif
+        var channel = GrpcChannel.ForAddress(rpcEndpoint, new GrpcChannelOptions
+            {
+                HttpHandler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                }
+            });
+        client = new Remote.RemoteClient(channel);
+        var monitor = client.GetMonitorResolution(new Empty());
+
         RunPeriodicUpdate(1000);
         base.OnInitialized();
     }
@@ -52,16 +105,16 @@
             renderer = new Renderer(canvasReference, ScreenshotService, JS);
             var lastRender = DateTime.Now;
 
-            while(true)
+            while (true)
             {
                 try
                 {
                     var dt = (DateTime.Now - lastRender).TotalSeconds;
                     deltaTimes.Add(dt);
 
-                    var last = DateTime.Now;
+                    var startRender = DateTime.Now;
                     await renderer.Draw();
-                    var lastRenderTime = (DateTime.Now - last).TotalSeconds;
+                    var lastRenderTime = (DateTime.Now - startRender).TotalSeconds;
                     renderTimes.Add(lastRenderTime);
 
                     frameIndex++;
@@ -73,7 +126,9 @@
                     StateHasChanged();
                     break;
                 }
-                await Task.Delay(Delay.Value);
+
+                if (Delay.Value != 2471)
+                    await Task.Delay(Delay.Value);
             }
         }
     }
@@ -82,13 +137,13 @@
     {
         while (true)
         {
-            while(deltaTimes.Count == 0)
+            while (deltaTimes.Count == 0)
                 await Task.Delay(millisecondsDelay);
 
             frameNum = frameIndex.ToString();
             avgFps = $"{1 / deltaTimes.Average():F}";
             avgRenderTime = $"{1 / renderTimes.Average():F} ms";
-            
+
             deltaTimes.Clear();
             renderTimes.Clear();
             StateHasChanged();
@@ -96,21 +151,63 @@
         }
     }
 
-    [JSInvokable("eventMouseDown")]
-    public void eventMouseDown(int x, int y)
+    public void HandleSubmit()
     {
-        ;
+        if (Input is null || Input.Link is null)
+            return;
+        if (!Input.Link.ToLower().StartsWith("http") && !Input.Link.ToLower().Contains("youtube.com/"))
+            return;
+
+        File.WriteAllText(@"..\Playlist.txt", Input.Link);
+        Input.Link = string.Empty;
     }
-    
-    [JSInvokable("eventMouseUp")]
-    public void eventMouseUp(int x, int y)
+
+    [JSInvokable("eventMouseDown")]
+    public async void eventMouseDown(int x, int y, int button)
     {
-        ;
+        if (!InputEnabled.HasValue || !InputEnabled.Value)
+            return;
+        await client.SendMouseEventAsync(new MouseEvent()
+            {
+                Type = (MouseButton)button switch
+                {
+                    MouseButton.Left => EventType.Leftdown,
+                    MouseButton.Right => EventType.Rightdown,
+                    _ => EventType.Leftdown
+                },
+                X = x,
+                Y = y
+            });
+    }
+
+    [JSInvokable("eventMouseUp")]
+    public async void eventMouseUp(int x, int y, int button)
+    {
+        if (!InputEnabled.HasValue || !InputEnabled.Value)
+            return;
+        await client.SendMouseEventAsync(new MouseEvent()
+            {
+                Type = (MouseButton)button switch
+                {
+                    MouseButton.Left => EventType.Leftup,
+                    MouseButton.Right => EventType.Rightup,
+                    _ => EventType.Leftup
+                },
+                X = x,
+                Y = y
+            });
     }
 
     [JSInvokable("eventMouseMove")]
-    public void eventMouseMove(int x, int y)
+    public async void eventMouseMove(int x, int y)
     {
-        ;
+        if (!InputEnabled.HasValue || !InputEnabled.Value)
+            return;
+        await client.SendMouseEventAsync(new MouseEvent()
+            {
+                Type = EventType.Move,
+                X = x,
+                Y = y
+            });
     }
 }
