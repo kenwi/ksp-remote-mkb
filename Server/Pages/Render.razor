@@ -12,15 +12,39 @@
 @inject DirectXScreenshotService ScreenshotService
 
 <PageTitle>Render</PageTitle>
-<p>@Message</p>
+<p>@Input.Message</p>
+
 <BECanvas Id="canvas" Width="@Width!.Value" Height="@Height!.Value" @ref="canvasReference"></BECanvas>
+
 <p>FrameNum: @frameNum Fps: @avgFps RenderTime: @avgRenderTime</p>
 
 @if (IsVerified.HasValue && IsVerified.Value)
 {
     <EditForm class="hstack gap-3" Model="@Input" OnValidSubmit="@HandleSubmit">
-        <div class="col-lg-4"><InputText class="form-control" id="YouTubeLink" @bind-Value="Input.Link" /></div>
-        <button type="submit" class="btn btn-primary">Start</button>
+        <div class="col-lg-4"><InputText class="form-control" id="YouTubeLink" @bind-Value="Input.Link" placeholder="YouTube link" /></div>
+        <button type="submit" class="btn btn-primary col-lg-1">Open Link</button>
+
+        <InputSelect class="form-select" aria-label="Select framerate" @bind-Value="Input.FrameRate">
+            <option value="10">10 ms</option>
+            <option value="20">20 ms</option>
+            <option value="30">30 ms</option>
+            <option value="50">50 ms</option>
+            <option value="100">100 ms</option>
+            <option value="250">250 ms</option>
+            <option value="500">500 ms</option>
+            <option value="1000">1000 ms</option>
+            <option value="2000">2000 ms</option>
+        </InputSelect>
+
+        <InputSelect class="form-select" aria-label="Select resolution" @bind-Value="Input.Resolution">
+            <option value="1280x720">1280x720</option>
+            <option value="800x600">800x600</option>
+        </InputSelect>
+
+        <InputSelect class="form-select" aria-label="Select image format" @bind-Value="Input.ImageFormat">
+            <option value="Png">Png</option>
+            <option value="Jpeg">Jpeg</option>
+        </InputSelect>
     </EditForm>
 }
 @code
@@ -28,10 +52,14 @@
     public class InputModel
     {
         public string? Link { get; set; }
+        public string? Resolution { get; set; }
+        public string? ImageFormat { get; set; }
+        public string? FrameRate { get; set; }
+        public string? Message { get; set; }
     }
 
     BECanvasComponent? canvasReference = null;
-    Renderer? renderer;
+    IRenderer? renderer;
 
     InputModel Input = new();
     Remote.RemoteClient client;
@@ -64,23 +92,27 @@
     [SupplyParameterFromQuery(Name = "height")]
     public int? Height { get; set; }
 
-    public string? Message { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "rendermethod")]
+    public string? RenderMethod { get; set; }
 
     protected override void OnInitialized()
     {
+        Input.FrameRate = "250 ms";
         Width ??= 1280;
         Height ??= 720;
         IsVerified ??= false;
         InputEnabled ??= false;
         Delay ??= 250;
-        Delay = Math.Max(10, Delay.Value);
+        Delay = Math.Max(1, Delay.Value);
         avgFps = "0.00";
         deltaTimes = new();
         renderTimes = new();
+        RenderMethod ??= "webgl";
 
         var identification = new Identification() { Id = Guid.Empty.ToString() };
         var rpcEndpoint = "https://hub.m0b.services";
-#if DEBUG 
+#if DEBUG
     rpcEndpoint = "https://localhost";
 #endif
         var channel = GrpcChannel.ForAddress(rpcEndpoint, new GrpcChannelOptions
@@ -92,8 +124,8 @@
             });
         client = new Remote.RemoteClient(channel);
         var monitor = client.GetMonitorResolution(new Empty());
-
         RunPeriodicUpdate(1000);
+
         base.OnInitialized();
     }
 
@@ -101,35 +133,29 @@
     {
         if (firstRender && canvasReference is not null && Delay is not null && JS is not null)
         {
-            await JS.InvokeVoidAsync("SetupEvents", DotNetObjectReference.Create(this));
-            renderer = new Renderer(canvasReference, ScreenshotService, JS);
-            var lastRender = DateTime.Now;
-
-            while (true)
+            renderer = RenderMethod switch
             {
-                try
-                {
-                    var dt = (DateTime.Now - lastRender).TotalSeconds;
-                    deltaTimes.Add(dt);
+                "webgl" => new WebGLRenderer(JS, ScreenshotService),
+                "imagedraw2d" => new Renderer(canvasReference, ScreenshotService, JS),
+                _ => throw new Exception("Invalid renderer")
+            };
 
-                    var startRender = DateTime.Now;
-                    await renderer.Draw();
-                    var lastRenderTime = (DateTime.Now - startRender).TotalSeconds;
-                    renderTimes.Add(lastRenderTime);
+            var lastRender = DateTime.Now;
+            while(true)
+            {
+                var dt = (DateTime.Now - lastRender).TotalSeconds;
+                deltaTimes.Add(dt);
 
-                    frameIndex++;
-                    lastRender = DateTime.Now;
-                }
-                catch (Exception ex)
-                {
-                    Message = ex.ToString();
-                    StateHasChanged();
-                    break;
-                }
+                lastRender = DateTime.Now;
+                renderer?.Draw();
+                var lastRenderTime = (DateTime.Now - lastRender).TotalSeconds;
+                renderTimes.Add(lastRenderTime);
 
-                if (Delay.Value != 2471)
-                    await Task.Delay(Delay.Value);
+                await Task.Delay(Delay.Value);
+                frameIndex++;
+                lastRender = DateTime.Now;
             }
+
         }
     }
 
@@ -160,6 +186,11 @@
 
         File.WriteAllText(@"..\Playlist.txt", Input.Link);
         Input.Link = string.Empty;
+    }
+
+    public void HandleChange()
+    {
+        Delay = int.Parse(Input.FrameRate);
     }
 
     [JSInvokable("eventMouseDown")]
