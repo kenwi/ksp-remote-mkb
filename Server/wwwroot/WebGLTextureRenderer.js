@@ -5,40 +5,22 @@ function Initialize(vertexShaderSource, fragmentShaderSource, textureData) {
 
     const canvas = document.getElementById("canvas");
     console.log(canvas);
-
     const gl = canvas.getContext("webgl");
     console.log(gl);
+    console.log("WebGL initialized");
 
-    console.log("Init webgl");
 
     const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
     const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
-    console.log("Init shaders");
-
     shaderProgram = createProgram(gl, vertexShader, fragmentShader);
-    console.log("Init shaderProgram");
+    console.log("Shaders initialized");
 
     const positionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
-    setRectangle(gl, 0, 0, canvas.width, canvas.height);
-
+    createVertexBufferData(gl, positionBuffer, 0, 0, canvas.width, canvas.height);
     const texcoordBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-        0.0, 0.0,
-        1.0, 0.0,
-        0.0, 1.0,
-        0.0, 1.0,
-        1.0, 0.0,
-        1.0, 1.0,
-    ]), gl.STATIC_DRAW);
+    createTextureBufferData(gl, texcoordBuffer);
     console.log("Created buffers");
 
-    // Collect all the info needed to use the shader program.
-    // Look up which attributes our shader program is using
-    // for aVertexPosition, aVertexNormal, aTextureCoord,
-    // and look up uniform locations.
     programInfo = {
         program: shaderProgram,
         webgl: gl,
@@ -86,7 +68,6 @@ function initTexture(gl, width, height) {
 }
 
 function draw(gl) {
-    // Drawing
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clearColor(0.4, 0.4, 0.4, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -138,11 +119,24 @@ function updateTexture(video, width, height, redraw = false) {
         draw(gl);
 }
 
-function setRectangle(gl, x, y, width, height) {
+function createTextureBufferData(gl, buffer) {
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+        0.0, 0.0,
+        1.0, 0.0,
+        0.0, 1.0,
+        0.0, 1.0,
+        1.0, 0.0,
+        1.0, 1.0,
+    ]), gl.STATIC_DRAW);
+}
+
+function createVertexBufferData(gl, buffer, x, y, width, height) {
     const x1 = x;
     const x2 = x + width;
     const y1 = y;
     const y2 = y + height;
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
         x1, y1,
         x2, y1,
