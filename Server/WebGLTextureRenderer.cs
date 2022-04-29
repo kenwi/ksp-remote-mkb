@@ -25,9 +25,7 @@ public class WebGLTextureRenderer : IRenderer
         var vertexShader = await File.ReadAllTextAsync("wwwroot/shaders/fundamentals.vert");
         var fragmentShader = await File.ReadAllTextAsync("wwwroot/shaders/fundamentals.frag");
         //var imageBytes = directXScreenshotService.Image.ToArray();
-        
-        rng.NextBytes(imageBytes);
-        await js.InvokeVoidAsync("Initialize", vertexShader, fragmentShader, imageBytes);
+        await js.InvokeVoidAsync("Initialize", vertexShader, fragmentShader);
         isActive = true;
     }
 
@@ -36,7 +34,6 @@ public class WebGLTextureRenderer : IRenderer
         if (!isActive)
             return;
         rng.NextBytes(imageBytes);
-
         await js.InvokeVoidAsync("updateTexture", imageBytes, width, height);
     }
 }
