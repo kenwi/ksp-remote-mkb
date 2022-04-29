@@ -8,7 +8,7 @@ function Initialize(vertexShaderSource, fragmentShaderSource, textureData) {
     const canvas = document.getElementById("canvas");
     console.log(canvas);
 
-    var gl = canvas.getContext("webgl");
+    const gl = canvas.getContext("webgl");
     console.log(gl);
 
     console.log("Init webgl");
@@ -20,14 +20,12 @@ function Initialize(vertexShaderSource, fragmentShaderSource, textureData) {
     shaderProgram = createProgram(gl, vertexShader, fragmentShader);
     console.log("Init shaderProgram");
 
-    //const buffers = initBuffers(gl);
-    //console.log(buffers);
-    var positionBuffer = gl.createBuffer();
+    const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
-    setRectangle(gl, 0, 0, 1280, 720);
+    setRectangle(gl, 0, 0, canvas.width, canvas.height);
 
-    var texcoordBuffer = gl.createBuffer();
+    const texcoordBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
         0.0, 0.0,
@@ -38,7 +36,6 @@ function Initialize(vertexShaderSource, fragmentShaderSource, textureData) {
         1.0, 1.0,
     ]), gl.STATIC_DRAW);
     console.log("Created buffers");
-
 
     // Collect all the info needed to use the shader program.
     // Look up which attributes our shader program is using
@@ -61,10 +58,10 @@ function Initialize(vertexShaderSource, fragmentShaderSource, textureData) {
     };
     console.log(programInfo);
 
-    texture = initTexture(gl, 1280, 720);
+    texture = initTexture(gl, canvas.width, canvas.height);
     console.log(texture);
 
-    updateTexture(textureData, 1280, 720);
+    updateTexture(textureData, canvas.width, canvas.height);
 
     console.log("Initialized");
 }
@@ -72,167 +69,6 @@ function Initialize(vertexShaderSource, fragmentShaderSource, textureData) {
 function SetShaderSources(vsSource, fsSource) {
     vertexShaderSource = vsSource;
     fragmentShaderSource = fsSource;
-}
-
-var positionBuffer;
-var textureCoordBuffer;
-function initBuffers(gl) {
-    // Create a buffer for the cube's vertex positions.
-    positionBuffer = gl.createBuffer();
-
-    // Select the positionBuffer as the one to apply buffer
-    // operations to from here out.
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
-    // Now create an array of positions for the cube.
-    const positions = [
-        // Front face
-        -1.0, -1.0, 1.0,
-        1.0, -1.0, 1.0,
-        1.0, 1.0, 1.0,
-        -1.0, 1.0, 1.0,
-
-        // Back face
-        -1.0, -1.0, -1.0,
-        -1.0, 1.0, -1.0,
-        1.0, 1.0, -1.0,
-        1.0, -1.0, -1.0,
-
-        // Top face
-        -1.0, 1.0, -1.0,
-        -1.0, 1.0, 1.0,
-        1.0, 1.0, 1.0,
-        1.0, 1.0, -1.0,
-
-        // Bottom face
-        -1.0, -1.0, -1.0,
-        1.0, -1.0, -1.0,
-        1.0, -1.0, 1.0,
-        -1.0, -1.0, 1.0,
-
-        // Right face
-        1.0, -1.0, -1.0,
-        1.0, 1.0, -1.0,
-        1.0, 1.0, 1.0,
-        1.0, -1.0, 1.0,
-
-        // Left face
-        -1.0, -1.0, -1.0,
-        -1.0, -1.0, 1.0,
-        -1.0, 1.0, 1.0,
-        -1.0, 1.0, -1.0,
-    ];
-
-    // Now pass the list of positions into WebGL to build the
-    // shape. We do this by creating a Float32Array from the
-    // JavaScript array, then use it to fill the current buffer.
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-
-    // Set up the normals for the vertices, so that we can compute lighting.
-    const normalBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-    const vertexNormals = [
-        // Front
-        0.0, 0.0, 1.0,
-        0.0, 0.0, 1.0,
-        0.0, 0.0, 1.0,
-        0.0, 0.0, 1.0,
-
-        // Back
-        0.0, 0.0, -1.0,
-        0.0, 0.0, -1.0,
-        0.0, 0.0, -1.0,
-        0.0, 0.0, -1.0,
-
-        // Top
-        0.0, 1.0, 0.0,
-        0.0, 1.0, 0.0,
-        0.0, 1.0, 0.0,
-        0.0, 1.0, 0.0,
-
-        // Bottom
-        0.0, -1.0, 0.0,
-        0.0, -1.0, 0.0,
-        0.0, -1.0, 0.0,
-        0.0, -1.0, 0.0,
-
-        // Right
-        1.0, 0.0, 0.0,
-        1.0, 0.0, 0.0,
-        1.0, 0.0, 0.0,
-        1.0, 0.0, 0.0,
-
-        // Left
-        -1.0, 0.0, 0.0,
-        -1.0, 0.0, 0.0,
-        -1.0, 0.0, 0.0,
-        -1.0, 0.0, 0.0,
-    ];
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals), gl.STATIC_DRAW);
-
-    // Now set up the texture coordinates for the faces.
-    textureCoordBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
-    const textureCoordinates = [
-        // Front
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0,
-        // Back
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0,
-        // Top
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0,
-        // Bottom
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0,
-        // Right
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0,
-        // Left
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0,
-    ];
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates), gl.STATIC_DRAW);
-
-    // Build the element array buffer; this specifies the indices
-    // into the vertex arrays for each face's vertices.
-    const indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-
-    // This array defines each face as two triangles, using the
-    // indices into the vertex array to specify each triangle's
-    // position.
-    const indices = [
-        0, 1, 2, 0, 2, 3,    // front
-        4, 5, 6, 4, 6, 7,    // back
-        8, 9, 10, 8, 10, 11,   // top
-        12, 13, 14, 12, 14, 15,   // bottom
-        16, 17, 18, 16, 18, 19,   // right
-        20, 21, 22, 20, 22, 23,   // left
-    ];
-
-    // Now send the element array to GL
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
-
-    return {
-        position: positionBuffer,
-        normal: normalBuffer,
-        textureCoord: textureCoordBuffer,
-        indices: indexBuffer,
-    };
 }
 
 function initTexture(gl, width, height) {
@@ -258,10 +94,6 @@ function initTexture(gl, width, height) {
 
 var i = 0;
 function updateTexture(video, width, height) {
-    //console.log("Drawing");
-    //console.log(video);
-    //console.log(texture);
-
     const canvas = document.getElementById("canvas");
     const gl = canvas.getContext("webgl");
 
@@ -270,15 +102,11 @@ function updateTexture(video, width, height) {
     const srcFormat = gl.RGBA;
     const srcType = gl.UNSIGNED_BYTE;
     const border = 0;
-
-    //console.log("Binding texture");
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, width, height, border, srcFormat, srcType, video);
 
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-
-    //console.log("Clearing");
     // Drawing
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clearColor(0.4, 0.4, 0.4, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -296,7 +124,6 @@ function updateTexture(video, width, height) {
 
     // Turn on the texcoord attribute
     gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord);
-    //console.log("OK");
 
     // bind the texcoord buffer.
     gl.bindBuffer(gl.ARRAY_BUFFER, programInfo.buffers.textureBuffer);
@@ -309,7 +136,6 @@ function updateTexture(video, width, height) {
     var offset = 0;        // start at the beginning of the buffer
     gl.vertexAttribPointer(programInfo.attribLocations.textureCoord, size, type, normalize, stride, offset);
 
-    //var resolutionLocation = gl.getUniformLocation(shaderProgram, "u_resolution");
     // set the resolution
     gl.uniform2f(programInfo.uniformLocations.resolution, width, height);
 
@@ -318,9 +144,6 @@ function updateTexture(video, width, height) {
     var offset = 0;
     var count = 6;
     gl.drawArrays(primitiveType, offset, count);
-
-    //console.log("Done");
-    //console.log(canvas);
 }
 
 function setRectangle(gl, x, y, width, height) {
