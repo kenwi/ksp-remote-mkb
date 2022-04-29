@@ -91,14 +91,13 @@ var i = 0;
 function updateTexture(video, width, height) {
     const canvas = document.getElementById("canvas");
     const gl = canvas.getContext("webgl");
-    const texture = programInfo.texture;
 
     const level = 0;
     const internalFormat = gl.RGBA;
     const srcFormat = gl.RGBA;
     const srcType = gl.UNSIGNED_BYTE;
     const border = 0;
-    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.bindTexture(gl.TEXTURE_2D, programInfo.texture);
     gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, width, height, border, srcFormat, srcType, video);
 
     // Drawing
@@ -125,11 +124,6 @@ function updateTexture(video, width, height) {
     gl.bindBuffer(gl.ARRAY_BUFFER, programInfo.buffers.textureBuffer);
 
     // Tell the texcoord attribute how to get data out of texcoordBuffer (ARRAY_BUFFER)
-    const size = 2;          // 2 components per iteration
-    const type = gl.FLOAT;   // the data is 32bit floats
-    const normalize = false; // don't normalize the data
-    const stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-    const offset = 0;        // start at the beginning of the buffer
     gl.vertexAttribPointer(programInfo.attribLocations.textureCoord, size, type, normalize, stride, offset);
 
     // set the resolution
