@@ -1,6 +1,4 @@
-﻿var texture;
-var shaderProgram;
-var programInfo;
+﻿var programInfo;
 
 function Initialize(vertexShaderSource, fragmentShaderSource, textureData) {
     console.log("Initializing");
@@ -44,6 +42,7 @@ function Initialize(vertexShaderSource, fragmentShaderSource, textureData) {
     programInfo = {
         program: shaderProgram,
         webgl: gl,
+        texture: initTexture(gl, canvas.width, canvas.height),
         buffers: {
             textureBuffer: texcoordBuffer,
             positionBuffer: positionBuffer
@@ -57,10 +56,6 @@ function Initialize(vertexShaderSource, fragmentShaderSource, textureData) {
         }
     };
     console.log(programInfo);
-
-    texture = initTexture(gl, canvas.width, canvas.height);
-    console.log(texture);
-
     updateTexture(textureData, canvas.width, canvas.height);
 
     console.log("Initialized");
@@ -96,6 +91,7 @@ var i = 0;
 function updateTexture(video, width, height) {
     const canvas = document.getElementById("canvas");
     const gl = canvas.getContext("webgl");
+    const texture = programInfo.texture;
 
     const level = 0;
     const internalFormat = gl.RGBA;
@@ -110,7 +106,7 @@ function updateTexture(video, width, height) {
     gl.clearColor(0.4, 0.4, 0.4, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    gl.useProgram(shaderProgram);
+    gl.useProgram(programInfo.program);
 
     gl.enableVertexAttribArray(programInfo.attribLocations.positionLocation);
     gl.bindBuffer(gl.ARRAY_BUFFER, programInfo.buffers.positionBuffer);
