@@ -9,6 +9,7 @@ function Initialize(vertexShaderSource, fragmentShaderSource) {
     const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
     const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
     const shaderProgram = createProgram(gl, vertexShader, fragmentShader);
+    gl.useProgram(shaderProgram);
 
     programInfo = {
         program: shaderProgram,
@@ -26,6 +27,27 @@ function Initialize(vertexShaderSource, fragmentShaderSource) {
             resolution: gl.getUniformLocation(shaderProgram, "u_resolution")
         }
     };
+
+    const size = 2;          // 2 components per iteration
+    const type = gl.FLOAT;   // the data is 32bit floats
+    const normalize = false; // don't normalize the data
+    const stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+    const offset = 0;        // start at the beginning of the buffer
+
+    // set the resolution
+    gl.uniform2f(programInfo.uniformLocations.resolution, gl.canvas.width, gl.canvas.height);
+
+    // Turn on the texcoord attribute
+    // bind the texcoord buffer.
+    // Tell the texcoord attribute how to get data out of texcoordBuffer (ARRAY_BUFFER)
+    gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord);
+    gl.bindBuffer(gl.ARRAY_BUFFER, programInfo.buffers.textureBuffer);
+    gl.vertexAttribPointer(programInfo.attribLocations.textureCoord, size, type, normalize, stride, offset);
+
+    gl.enableVertexAttribArray(programInfo.attribLocations.positionLocation);
+    gl.bindBuffer(gl.ARRAY_BUFFER, programInfo.buffers.positionBuffer);
+    gl.vertexAttribPointer(programInfo.attribLocations.positionLocation, size, type, normalize, stride, offset);
+
     console.log(programInfo);
     console.log("Initialized");
 }
@@ -52,11 +74,11 @@ function initTexture(gl, width, height) {
     gl.bindTexture(gl.TEXTURE_2D, tex);
 
     const level = 0;
-    const internalFormat = gl.RGBA;
+    const internalFormat = gl.RGB;
     const border = 0;
-    const srcFormat = gl.RGBA;
+    const srcFormat = gl.RGB;
     const srcType = gl.UNSIGNED_BYTE;
-    const pixel = new Uint8Array([0, 0, 255, 0]);  // opaque blue
+    const pixel = new Uint8Array([0, 0, 255]);  // opaque blue
     gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, width, height, border, srcFormat, srcType, pixel);
 
     // Turn off mips and set  wrapping to clamp to edge so it
@@ -69,38 +91,10 @@ function initTexture(gl, width, height) {
 }
 
 function draw(gl) {
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-    gl.clearColor(0.4, 0.4, 0.4, 0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
-
-    gl.useProgram(programInfo.program);
-
-    gl.enableVertexAttribArray(programInfo.attribLocations.positionLocation);
-    gl.bindBuffer(gl.ARRAY_BUFFER, programInfo.buffers.positionBuffer);
-
-    const size = 2;          // 2 components per iteration
-    const type = gl.FLOAT;   // the data is 32bit floats
-    const normalize = false; // don't normalize the data
-    const stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-    const offset = 0;        // start at the beginning of the buffer
-    gl.vertexAttribPointer(programInfo.attribLocations.positionLocation, size, type, normalize, stride, offset);
-
-    // Turn on the texcoord attribute
-    gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord);
-
-    // bind the texcoord buffer.
-    gl.bindBuffer(gl.ARRAY_BUFFER, programInfo.buffers.textureBuffer);
-
-    // Tell the texcoord attribute how to get data out of texcoordBuffer (ARRAY_BUFFER)
-    gl.vertexAttribPointer(programInfo.attribLocations.textureCoord, size, type, normalize, stride, offset);
-
-    // set the resolution
-    gl.uniform2f(programInfo.uniformLocations.resolution, gl.canvas.width, gl.canvas.height);
-
-    // Draw the rectangle.
+    const offset = 0;
     const primitiveType = gl.TRIANGLES;
-    const count = 6;
-    gl.drawArrays(primitiveType, offset, count);
+    const primitiveCount = 6;
+    gl.drawArrays(primitiveType, offset, primitiveCount);
 }
 
 function updateTexture(video, width, height) {
@@ -108,8 +102,8 @@ function updateTexture(video, width, height) {
     const gl = canvas.getContext("webgl");
 
     const level = 0;
-    const internalFormat = gl.RGBA;
-    const srcFormat = gl.RGBA;
+    const internalFormat = gl.RGB;
+    const srcFormat = gl.RGB;
     const srcType = gl.UNSIGNED_BYTE;
     const border = 0;
     gl.bindTexture(gl.TEXTURE_2D, programInfo.texture);
