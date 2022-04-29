@@ -4,19 +4,19 @@ using Microsoft.JSInterop;
 using Server.Services;
 using WebGL;
 
-public class Renderer
+public class Renderer : IRenderer
 {
     readonly BECanvasComponent canvas;
     private readonly DirectXScreenshotService directXScreenshotService;
     private readonly IJSRuntime jSRuntime;
-    WebGLContext? gl;
-    WebGLUniformLocation u_matrix_location;
-    WebGLProgram shader;
-    static Random rng = new Random((int)DateTime.Now.Ticks);
-    private float[] positions;
-    uint positionAttributeLocation;
-    private ShaderProgram shaderProgram;
-    private byte[] byteArr;
+    //WebGLContext? gl;
+    //WebGLUniformLocation u_matrix_location;
+    //WebGLProgram shader;
+    //static Random rng = new Random((int)DateTime.Now.Ticks);
+    //private float[] positions;
+    //uint positionAttributeLocation;
+    //private ShaderProgram shaderProgram;
+    //private byte[] byteArr;
 
     public Renderer(BECanvasComponent canvas, 
         DirectXScreenshotService directXScreenshotService,
@@ -70,5 +70,10 @@ public class Renderer
         }
 
         return shader;
+    }
+
+    public Task Setup()
+    {
+        throw new NotImplementedException();
     }
 }
