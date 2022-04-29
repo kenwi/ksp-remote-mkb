@@ -1,52 +1,23 @@
 ﻿@page "/render"
-@using Blazor.Extensions
-@using Blazor.Extensions.Canvas
-@using Blazor.Extensions.Canvas.WebGL
-@using Grpc.Net.Client
-@using Server.Services
-@using System.Drawing
-@using System.ComponentModel.DataAnnotations
 @using System.Windows.Input
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Web.Virtualization
 
 @inject IJSRuntime JS
 @inject DirectXScreenshotService ScreenshotService
 
 <PageTitle>Render</PageTitle>
-<p>@Input.Message</p>
 
-<BECanvas Id="canvas" Width="@Width!.Value" Height="@Height!.Value" @ref="canvasReference"></BECanvas>
+<p>@Input.Message</p>
+<canvas id="canvas" width="@Width" height="@Height"></canvas>
+@*<BECanvas Width="@Width!.Value" Height="@Height!.Value" @ref="canvasReference"></BECanvas>*@
 
 <p>FrameNum: @frameNum Fps: @avgFps RenderTime: @avgRenderTime</p>
 
-@if (IsVerified.HasValue && IsVerified.Value)
-{
-    <EditForm class="hstack gap-3" Model="@Input" OnValidSubmit="@HandleSubmit">
-        <div class="col-lg-4"><InputText class="form-control" id="YouTubeLink" @bind-Value="Input.Link" placeholder="YouTube link" /></div>
-        <button type="submit" class="btn btn-primary col-lg-1">Open Link</button>
-
-        <InputSelect class="form-select" aria-label="Select framerate" @bind-Value="Input.FrameRate">
-            <option value="10">10 ms</option>
-            <option value="20">20 ms</option>
-            <option value="30">30 ms</option>
-            <option value="50">50 ms</option>
-            <option value="100">100 ms</option>
-            <option value="250">250 ms</option>
-            <option value="500">500 ms</option>
-            <option value="1000">1000 ms</option>
-            <option value="2000">2000 ms</option>
-        </InputSelect>
-
-        <InputSelect class="form-select" aria-label="Select resolution" @bind-Value="Input.Resolution">
-            <option value="1280x720">1280x720</option>
-            <option value="800x600">800x600</option>
-        </InputSelect>
-
-        <InputSelect class="form-select" aria-label="Select image format" @bind-Value="Input.ImageFormat">
-            <option value="Png">Png</option>
-            <option value="Jpeg">Jpeg</option>
-        </InputSelect>
-    </EditForm>
-}
 @code
 {
     public class InputModel
@@ -62,15 +33,15 @@
     IRenderer? renderer;
 
     InputModel Input = new();
-    Remote.RemoteClient client;
+    Remote.RemoteClient? client;
 
     string frameNum = string.Empty;
     string avgFps = string.Empty;
     string avgRenderTime = string.Empty;
 
     uint frameIndex = 0;
-    List<double> deltaTimes;
-    List<double> renderTimes;
+    List<double>? deltaTimes;
+    List<double>? renderTimes;
 
     [Parameter]
     [SupplyParameterFromQuery(Name = "delay")]
@@ -103,27 +74,26 @@
         Height ??= 720;
         IsVerified ??= false;
         InputEnabled ??= false;
-        Delay ??= 250;
+        Delay ??= 25;
         Delay = Math.Max(1, Delay.Value);
         avgFps = "0.00";
         deltaTimes = new();
         renderTimes = new();
         RenderMethod ??= "webgl";
-
-        var identification = new Identification() { Id = Guid.Empty.ToString() };
-        var rpcEndpoint = "https://hub.m0b.services";
-#if DEBUG
-    rpcEndpoint = "https://localhost";
-#endif
-        var channel = GrpcChannel.ForAddress(rpcEndpoint, new GrpcChannelOptions
-            {
-                HttpHandler = new HttpClientHandler
-                {
-                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-                }
-            });
-        client = new Remote.RemoteClient(channel);
-        var monitor = client.GetMonitorResolution(new Empty());
+        //        var identification = new Identification() { Id = Guid.Empty.ToString() };
+        //        var rpcEndpoint = "https://hub.m0b.services";
+        //#if DEBUG
+        //    rpcEndpoint = "https://localhost";
+        //#endif
+        //        var channel = GrpcChannel.ForAddress(rpcEndpoint, new GrpcChannelOptions
+        //            {
+        //                HttpHandler = new HttpClientHandler
+        //                {
+        //                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+        //                }
+        //            });
+        //        client = new Remote.RemoteClient(channel);
+        //        var monitor = client.GetMonitorResolution(new Empty());
         RunPeriodicUpdate(1000);
 
         base.OnInitialized();
@@ -131,25 +101,29 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && canvasReference is not null && Delay is not null && JS is not null)
+        if (firstRender && Delay is not null && JS is not null)
         {
             renderer = RenderMethod switch
             {
-                "webgl" => new WebGLRenderer(JS, ScreenshotService),
+                "webgl" => new WebGLTextureRenderer(JS, ScreenshotService),
                 "imagedraw2d" => new Renderer(canvasReference, ScreenshotService, JS),
                 _ => throw new Exception("Invalid renderer")
             };
 
+            //if (renderer is null)
+            //    throw new Exception("Wrong renderer");
+
+            await renderer.Setup();
             var lastRender = DateTime.Now;
             while(true)
             {
                 var dt = (DateTime.Now - lastRender).TotalSeconds;
-                deltaTimes.Add(dt);
+                deltaTimes?.Add(dt);
 
                 lastRender = DateTime.Now;
-                renderer?.Draw();
+                await renderer.Draw();
                 var lastRenderTime = (DateTime.Now - lastRender).TotalSeconds;
-                renderTimes.Add(lastRenderTime);
+                renderTimes?.Add(lastRenderTime);
 
                 await Task.Delay(Delay.Value);
                 frameIndex++;
@@ -163,15 +137,15 @@
     {
         while (true)
         {
-            while (deltaTimes.Count == 0)
+            while (deltaTimes?.Count == 0)
                 await Task.Delay(millisecondsDelay);
 
             frameNum = frameIndex.ToString();
-            avgFps = $"{1 / deltaTimes.Average():F}";
-            avgRenderTime = $"{1 / renderTimes.Average():F} ms";
+            avgRenderTime = $"{1 / renderTimes?.Average():F} ms";
+            avgFps = $"{1 / (deltaTimes?.Average() + renderTimes?.Average()):F}";
 
-            deltaTimes.Clear();
-            renderTimes.Clear();
+            deltaTimes?.Clear();
+            renderTimes?.Clear();
             StateHasChanged();
             await Task.Delay(millisecondsDelay);
         }
@@ -190,13 +164,13 @@
 
     public void HandleChange()
     {
-        Delay = int.Parse(Input.FrameRate);
+        Delay = int.Parse(Input.FrameRate ?? "0");
     }
 
     [JSInvokable("eventMouseDown")]
     public async void eventMouseDown(int x, int y, int button)
     {
-        if (!InputEnabled.HasValue || !InputEnabled.Value)
+        if (!InputEnabled.HasValue || !InputEnabled.Value || client is null)
             return;
         await client.SendMouseEventAsync(new MouseEvent()
             {
@@ -214,7 +188,7 @@
     [JSInvokable("eventMouseUp")]
     public async void eventMouseUp(int x, int y, int button)
     {
-        if (!InputEnabled.HasValue || !InputEnabled.Value)
+        if (!InputEnabled.HasValue || !InputEnabled.Value || client is null)
             return;
         await client.SendMouseEventAsync(new MouseEvent()
             {
@@ -232,7 +206,7 @@
     [JSInvokable("eventMouseMove")]
     public async void eventMouseMove(int x, int y)
     {
-        if (!InputEnabled.HasValue || !InputEnabled.Value)
+        if (!InputEnabled.HasValue || !InputEnabled.Value || client is null)
             return;
         await client.SendMouseEventAsync(new MouseEvent()
             {
