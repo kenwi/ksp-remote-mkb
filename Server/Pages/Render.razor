@@ -18,12 +18,13 @@
 
 @code
 {
+    bool isRunning = true;
     uint frameIndex = 0;
     List<double>? deltaTimes;
     List<double>? renderTimes;
     Remote.RemoteClient? client;
     IRenderer? renderer;
-    
+
     public InputModel Input = new();
     public string FrameIndex = string.Empty;
     public string AverageFps = string.Empty;
@@ -71,41 +72,11 @@
         base.OnInitialized();
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender && Delay is not null && JS is not null)
-        {
-            renderer = RenderMethod switch
-            {
-                "webgl" => new WebGLTextureRenderer(JS, ScreenshotService),
-                //"imagedraw2d" => new Renderer(canvasReference, ScreenshotService, JS),
-                _ => throw new Exception("Invalid renderer")
-            };
-
-            await renderer.Setup();
-            var lastRender = DateTime.Now;
-            while(true)
-            {
-                var dt = (DateTime.Now - lastRender).TotalSeconds;
-                deltaTimes?.Add(dt);
-
-                lastRender = DateTime.Now;
-                await renderer.Draw();
-                var lastRenderTime = (DateTime.Now - lastRender).TotalSeconds;
-                renderTimes?.Add(lastRenderTime);
-
-                await Task.Delay(Delay.Value);
-                frameIndex++;
-                lastRender = DateTime.Now;
-            }
-        }
-    }
-
     private async void RunPeriodicUpdate(int millisecondsDelay)
     {
-        while (true)
+        while (isRunning)
         {
-            while (deltaTimes?.Count == 0)
+            while (deltaTimes?.Count == 0 && isRunning)
                 await Task.Delay(millisecondsDelay);
 
             FrameIndex = frameIndex.ToString();
@@ -118,26 +89,53 @@
         }
     }
 
-    public void HandleSubmit()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (Input is null || Input.Link is null)
-            return;
-        if (!Input.Link.ToLower().StartsWith("http") && !Input.Link.ToLower().Contains("youtube.com/"))
-            return;
+        if (firstRender && Delay is not null && JS is not null)
+        {
+            try
+            {
+                renderer = RenderMethod switch
+                {
+                    "webgl" => new WebGLTextureRenderer(JS, ScreenshotService),
+                    //"imagedraw2d" => new Renderer(canvasReference, ScreenshotService, JS),
+                    _ => throw new Exception("Invalid renderer")
+                };
 
-        File.WriteAllText(@"..\Playlist.txt", Input.Link);
-        Input.Link = string.Empty;
-    }
+                await renderer.Setup();
+                var lastRender = DateTime.Now;
+                while (true)
+                {
+                    var dt = (DateTime.Now - lastRender).TotalSeconds;
+                    deltaTimes?.Add(dt);
 
-    public void HandleChange()
-    {
-        Delay = int.Parse(Input.FrameRate ?? "0");
+                    lastRender = DateTime.Now;
+                    await renderer.Draw();
+                    var lastRenderTime = (DateTime.Now - lastRender).TotalSeconds;
+                    renderTimes?.Add(lastRenderTime);
+
+                    await Task.Delay(Delay.Value);
+                    frameIndex++;
+                    lastRender = DateTime.Now;
+                }
+            }
+            catch (Exception e)
+            {
+                isRunning = false;
+                Console.WriteLine(e.Message);
+                Input.Message = e.Message;
+                StateHasChanged();
+            }
+        }
     }
 
     [JSInvokable("eventMouseDown")]
     public async void eventMouseDown(int x, int y, int button)
     {
-        if (!InputEnabled.HasValue || !InputEnabled.Value || client is null)
+        if (!InputEnabled.HasValue
+            || !InputEnabled.Value
+            || client is null
+            || !isRunning)
             return;
         await client.SendMouseEventAsync(new MouseEvent()
             {
@@ -155,7 +153,10 @@
     [JSInvokable("eventMouseUp")]
     public async void eventMouseUp(int x, int y, int button)
     {
-        if (!InputEnabled.HasValue || !InputEnabled.Value || client is null)
+        if (!InputEnabled.HasValue
+            || !InputEnabled.Value
+            || client is null
+            || !isRunning)
             return;
         await client.SendMouseEventAsync(new MouseEvent()
             {
@@ -173,7 +174,10 @@
     [JSInvokable("eventMouseMove")]
     public async void eventMouseMove(int x, int y)
     {
-        if (!InputEnabled.HasValue || !InputEnabled.Value || client is null)
+        if (!InputEnabled.HasValue
+            || !InputEnabled.Value
+            || client is null
+            || !isRunning)
             return;
         await client.SendMouseEventAsync(new MouseEvent()
             {
