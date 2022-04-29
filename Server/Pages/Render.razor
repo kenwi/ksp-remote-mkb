@@ -14,32 +14,20 @@
 
 <p>@Input.Message</p>
 <canvas id="canvas" width="@Width" height="@Height"></canvas>
-<p>FrameNum: @frameNum Fps: @avgFps RenderTime: @avgRenderTime</p>
+<p>FrameNum: @FrameIndex Fps: @AverageFps RenderTime: @AverageRenderTime</p>
 
 @code
 {
-    public class InputModel
-    {
-        public string? Link { get; set; }
-        public string? Resolution { get; set; }
-        public string? ImageFormat { get; set; }
-        public string? FrameRate { get; set; }
-        public string? Message { get; set; }
-    }
-
-    BECanvasComponent? canvasReference = null;
-    IRenderer? renderer;
-
-    InputModel Input = new();
-    Remote.RemoteClient? client;
-
-    string frameNum = string.Empty;
-    string avgFps = string.Empty;
-    string avgRenderTime = string.Empty;
-
     uint frameIndex = 0;
     List<double>? deltaTimes;
     List<double>? renderTimes;
+    Remote.RemoteClient? client;
+    IRenderer? renderer;
+    
+    public InputModel Input = new();
+    public string FrameIndex = string.Empty;
+    public string AverageFps = string.Empty;
+    public string AverageRenderTime = string.Empty;
 
     [Parameter]
     [SupplyParameterFromQuery(Name = "delay")]
@@ -72,26 +60,12 @@
         Height ??= 720;
         IsVerified ??= false;
         InputEnabled ??= false;
-        Delay ??= 25;
-        Delay = Math.Max(1, Delay.Value);
-        avgFps = "0.00";
+        Delay = Math.Max(1, Delay ?? 25);
+        AverageFps = "0.00";
         deltaTimes = new();
         renderTimes = new();
         RenderMethod ??= "webgl";
-        //        var identification = new Identification() { Id = Guid.Empty.ToString() };
-        //        var rpcEndpoint = "https://hub.m0b.services";
-        //#if DEBUG
-        //    rpcEndpoint = "https://localhost";
-        //#endif
-        //        var channel = GrpcChannel.ForAddress(rpcEndpoint, new GrpcChannelOptions
-        //            {
-        //                HttpHandler = new HttpClientHandler
-        //                {
-        //                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-        //                }
-        //            });
-        //        client = new Remote.RemoteClient(channel);
-        //        var monitor = client.GetMonitorResolution(new Empty());
+
         RunPeriodicUpdate(1000);
 
         base.OnInitialized();
@@ -104,12 +78,9 @@
             renderer = RenderMethod switch
             {
                 "webgl" => new WebGLTextureRenderer(JS, ScreenshotService),
-                "imagedraw2d" => new Renderer(canvasReference, ScreenshotService, JS),
+                //"imagedraw2d" => new Renderer(canvasReference, ScreenshotService, JS),
                 _ => throw new Exception("Invalid renderer")
             };
-
-            //if (renderer is null)
-            //    throw new Exception("Wrong renderer");
 
             await renderer.Setup();
             var lastRender = DateTime.Now;
@@ -127,7 +98,6 @@
                 frameIndex++;
                 lastRender = DateTime.Now;
             }
-
         }
     }
 
@@ -138,10 +108,9 @@
             while (deltaTimes?.Count == 0)
                 await Task.Delay(millisecondsDelay);
 
-            frameNum = frameIndex.ToString();
-            avgRenderTime = $"{1 / renderTimes?.Average():F} ms";
-            avgFps = $"{1 / (deltaTimes?.Average() + renderTimes?.Average()):F}";
-
+            FrameIndex = frameIndex.ToString();
+            AverageRenderTime = $"{1 / renderTimes?.Average():F} ms";
+            AverageFps = $"{1 / (deltaTimes?.Average() + renderTimes?.Average()):F}";
             deltaTimes?.Clear();
             renderTimes?.Clear();
             StateHasChanged();
