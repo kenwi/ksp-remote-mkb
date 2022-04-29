@@ -61,7 +61,7 @@
         Height ??= 720;
         IsVerified ??= false;
         InputEnabled ??= false;
-        Delay = Math.Max(1, Delay ?? 25);
+        Delay = Math.Max(1, Delay ?? 11);
         AverageFps = "0.00";
         deltaTimes = new();
         renderTimes = new();
@@ -114,7 +114,7 @@
                     var lastRenderTime = (DateTime.Now - lastRender).TotalSeconds;
                     renderTimes?.Add(lastRenderTime);
 
-                    await Task.Delay(Delay.Value);
+                    //await Task.Delay(Delay.Value - (int)lastRenderTime * 1000);
                     frameIndex++;
                     lastRender = DateTime.Now;
                 }

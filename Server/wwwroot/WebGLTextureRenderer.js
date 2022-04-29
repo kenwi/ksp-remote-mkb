@@ -1,33 +1,22 @@
 ﻿var programInfo;
 
-function Initialize(vertexShaderSource, fragmentShaderSource, textureData) {
+function Initialize(vertexShaderSource, fragmentShaderSource) {
     console.log("Initializing");
-
     const canvas = document.getElementById("canvas");
-    console.log(canvas);
     const gl = canvas.getContext("webgl");
     console.log(gl);
-    console.log("WebGL initialized");
-
 
     const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
     const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
-    shaderProgram = createProgram(gl, vertexShader, fragmentShader);
-    console.log("Shaders initialized");
-
-    const positionBuffer = gl.createBuffer();
-    createVertexBufferData(gl, positionBuffer, 0, 0, canvas.width, canvas.height);
-    const texcoordBuffer = gl.createBuffer();
-    createTextureBufferData(gl, texcoordBuffer);
-    console.log("Created buffers");
+    const shaderProgram = createProgram(gl, vertexShader, fragmentShader);
 
     programInfo = {
         program: shaderProgram,
         webgl: gl,
         texture: initTexture(gl, canvas.width, canvas.height),
         buffers: {
-            textureBuffer: texcoordBuffer,
-            positionBuffer: positionBuffer
+            textureBuffer: createTextureBuffer(gl),
+            positionBuffer: createVertexBuffer(gl)
         },
         attribLocations: {
             positionLocation: gl.getAttribLocation(shaderProgram, 'a_position'),
@@ -39,6 +28,18 @@ function Initialize(vertexShaderSource, fragmentShaderSource, textureData) {
     };
     console.log(programInfo);
     console.log("Initialized");
+}
+
+function createVertexBuffer(gl) {
+    const positionBuffer = gl.createBuffer();
+    createVertexBufferData(gl, positionBuffer, 0, 0, gl.canvas.width, gl.canvas.height);
+    return positionBuffer;
+}
+
+function createTextureBuffer(gl) {
+    const texcoordBuffer = gl.createBuffer();
+    createTextureBufferData(gl, texcoordBuffer);
+    return texcoordBuffer;
 }
 
 function SetShaderSources(vsSource, fsSource) {
@@ -94,16 +95,15 @@ function draw(gl) {
     gl.vertexAttribPointer(programInfo.attribLocations.textureCoord, size, type, normalize, stride, offset);
 
     // set the resolution
-    gl.uniform2f(programInfo.uniformLocations.resolution, width, height);
+    gl.uniform2f(programInfo.uniformLocations.resolution, gl.canvas.width, gl.canvas.height);
 
     // Draw the rectangle.
     const primitiveType = gl.TRIANGLES;
-    const offset = 0;
     const count = 6;
     gl.drawArrays(primitiveType, offset, count);
 }
 
-function updateTexture(video, width, height, redraw = false) {
+function updateTexture(video, width, height) {
     const canvas = document.getElementById("canvas");
     const gl = canvas.getContext("webgl");
 
@@ -115,8 +115,7 @@ function updateTexture(video, width, height, redraw = false) {
     gl.bindTexture(gl.TEXTURE_2D, programInfo.texture);
     gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, width, height, border, srcFormat, srcType, video);
 
-    if (redraw)
-        draw(gl);
+    draw(gl);
 }
 
 function createTextureBufferData(gl, buffer) {
