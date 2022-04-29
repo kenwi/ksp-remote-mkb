@@ -115,11 +115,11 @@ function updateTexture(video, width, height) {
     gl.enableVertexAttribArray(programInfo.attribLocations.positionLocation);
     gl.bindBuffer(gl.ARRAY_BUFFER, programInfo.buffers.positionBuffer);
 
-    var size = 2;          // 2 components per iteration
-    var type = gl.FLOAT;   // the data is 32bit floats
-    var normalize = false; // don't normalize the data
-    var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-    var offset = 0;        // start at the beginning of the buffer
+    const size = 2;          // 2 components per iteration
+    const type = gl.FLOAT;   // the data is 32bit floats
+    const normalize = false; // don't normalize the data
+    const stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+    const offset = 0;        // start at the beginning of the buffer
     gl.vertexAttribPointer(programInfo.attribLocations.positionLocation, size, type, normalize, stride, offset);
 
     // Turn on the texcoord attribute
@@ -129,28 +129,28 @@ function updateTexture(video, width, height) {
     gl.bindBuffer(gl.ARRAY_BUFFER, programInfo.buffers.textureBuffer);
 
     // Tell the texcoord attribute how to get data out of texcoordBuffer (ARRAY_BUFFER)
-    var size = 2;          // 2 components per iteration
-    var type = gl.FLOAT;   // the data is 32bit floats
-    var normalize = false; // don't normalize the data
-    var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-    var offset = 0;        // start at the beginning of the buffer
+    const size = 2;          // 2 components per iteration
+    const type = gl.FLOAT;   // the data is 32bit floats
+    const normalize = false; // don't normalize the data
+    const stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+    const offset = 0;        // start at the beginning of the buffer
     gl.vertexAttribPointer(programInfo.attribLocations.textureCoord, size, type, normalize, stride, offset);
 
     // set the resolution
     gl.uniform2f(programInfo.uniformLocations.resolution, width, height);
 
     // Draw the rectangle.
-    var primitiveType = gl.TRIANGLES;
-    var offset = 0;
-    var count = 6;
+    const primitiveType = gl.TRIANGLES;
+    const offset = 0;
+    const count = 6;
     gl.drawArrays(primitiveType, offset, count);
 }
 
 function setRectangle(gl, x, y, width, height) {
-    var x1 = x;
-    var x2 = x + width;
-    var y1 = y;
-    var y2 = y + height;
+    const x1 = x;
+    const x2 = x + width;
+    const y1 = y;
+    const y2 = y + height;
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
         x1, y1,
         x2, y1,
@@ -162,7 +162,7 @@ function setRectangle(gl, x, y, width, height) {
 }
 
 function createProgram(gl, vertexShader, fragmentShader) {
-    var program = gl.createProgram();
+    const program = gl.createProgram();
     console.log(vertexShader);
 
     gl.attachShader(program, vertexShader);
