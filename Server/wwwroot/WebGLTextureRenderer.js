@@ -27,6 +27,7 @@ function Initialize(vertexShaderSource, fragmentShaderSource) {
             resolution: gl.getUniformLocation(shaderProgram, "u_resolution")
         }
     };
+    console.log(programInfo);
 
     const size = 2;          // 2 components per iteration
     const type = gl.FLOAT;   // the data is 32bit floats
@@ -37,28 +38,32 @@ function Initialize(vertexShaderSource, fragmentShaderSource) {
     // set the resolution
     gl.uniform2f(programInfo.uniformLocations.resolution, gl.canvas.width, gl.canvas.height);
 
-    // Turn on the texcoord attribute
-    // bind the texcoord buffer.
-    // Tell the texcoord attribute how to get data out of texcoordBuffer (ARRAY_BUFFER)
+    // Turn on the textureCoord attribute
+    // bind the textureCoord buffer.
+    // Tell the textureCoord attribute how to get data out of textureBuffer (ARRAY_BUFFER)
     gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord);
     gl.bindBuffer(gl.ARRAY_BUFFER, programInfo.buffers.textureBuffer);
     gl.vertexAttribPointer(programInfo.attribLocations.textureCoord, size, type, normalize, stride, offset);
 
+    // Turn on the positionLocation attribute
+    // bind the positionLocation buffer.
+    // Tell the positionLocation attribute how to get data out of positionBuffer (ARRAY_BUFFER)
     gl.enableVertexAttribArray(programInfo.attribLocations.positionLocation);
     gl.bindBuffer(gl.ARRAY_BUFFER, programInfo.buffers.positionBuffer);
     gl.vertexAttribPointer(programInfo.attribLocations.positionLocation, size, type, normalize, stride, offset);
 
-    console.log(programInfo);
     console.log("Initialized");
 }
 
 function createVertexBuffer(gl) {
+    console.log("Creating vertex buffer");
     const positionBuffer = gl.createBuffer();
     createVertexBufferData(gl, positionBuffer, 0, 0, gl.canvas.width, gl.canvas.height);
     return positionBuffer;
 }
 
 function createTextureBuffer(gl) {
+    console.log("Creating texture buffer");
     const texcoordBuffer = gl.createBuffer();
     createTextureBufferData(gl, texcoordBuffer);
     return texcoordBuffer;
@@ -86,7 +91,7 @@ function initTexture(gl, width, height) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-
+    console.log("Initialized texture");
     return tex;
 }
 
@@ -122,6 +127,7 @@ function createTextureBufferData(gl, buffer) {
         1.0, 0.0,
         1.0, 1.0,
     ]), gl.STATIC_DRAW);
+    console.log("Initialized buffer data");
 }
 
 function createVertexBufferData(gl, buffer, x, y, width, height) {
@@ -138,6 +144,7 @@ function createVertexBufferData(gl, buffer, x, y, width, height) {
         x2, y1,
         x2, y2,
     ]), gl.STATIC_DRAW);
+    console.log("Initialized buffer data");
 }
 
 function createProgram(gl, vertexShader, fragmentShader) {
@@ -150,6 +157,7 @@ function createProgram(gl, vertexShader, fragmentShader) {
 
     const success = gl.getProgramParameter(program, gl.LINK_STATUS);
     if (success) {
+        console.log("Initialized shader program");
         return program;
     }
 
@@ -164,6 +172,7 @@ function createShader(gl, type, source) {
 
     const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
     if (success) {
+        console.log("Created shader: " + type);
         return shader;
     }
 
