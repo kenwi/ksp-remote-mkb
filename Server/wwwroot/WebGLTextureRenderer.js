@@ -90,17 +90,16 @@ function initTexture(gl, width, height) {
     return tex;
 }
 
-function draw(gl) {
+function draw() {
+    const gl = programInfo.webgl;
     const offset = 0;
     const primitiveType = gl.TRIANGLES;
     const primitiveCount = 6;
     gl.drawArrays(primitiveType, offset, primitiveCount);
 }
 
-function updateTexture(video, width, height) {
-    const canvas = document.getElementById("canvas");
-    const gl = canvas.getContext("webgl");
-
+function updateTexture(video, width, height, redraw = true) {
+    const gl = programInfo.webgl;
     const level = 0;
     const internalFormat = gl.RGB;
     const srcFormat = gl.RGB;
@@ -109,7 +108,8 @@ function updateTexture(video, width, height) {
     gl.bindTexture(gl.TEXTURE_2D, programInfo.texture);
     gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, width, height, border, srcFormat, srcType, video);
 
-    draw(gl);
+    if(redraw)
+        draw();
 }
 
 function createTextureBufferData(gl, buffer) {
