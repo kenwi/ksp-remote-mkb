@@ -56,8 +56,6 @@ function Initialize(vertexShaderSource, fragmentShaderSource, textureData) {
         }
     };
     console.log(programInfo);
-    updateTexture(textureData, canvas.width, canvas.height);
-
     console.log("Initialized");
 }
 
@@ -87,19 +85,7 @@ function initTexture(gl, width, height) {
     return tex;
 }
 
-var i = 0;
-function updateTexture(video, width, height) {
-    const canvas = document.getElementById("canvas");
-    const gl = canvas.getContext("webgl");
-
-    const level = 0;
-    const internalFormat = gl.RGBA;
-    const srcFormat = gl.RGBA;
-    const srcType = gl.UNSIGNED_BYTE;
-    const border = 0;
-    gl.bindTexture(gl.TEXTURE_2D, programInfo.texture);
-    gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, width, height, border, srcFormat, srcType, video);
-
+function draw(gl) {
     // Drawing
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clearColor(0.4, 0.4, 0.4, 0);
@@ -134,6 +120,22 @@ function updateTexture(video, width, height) {
     const offset = 0;
     const count = 6;
     gl.drawArrays(primitiveType, offset, count);
+}
+
+function updateTexture(video, width, height, redraw = false) {
+    const canvas = document.getElementById("canvas");
+    const gl = canvas.getContext("webgl");
+
+    const level = 0;
+    const internalFormat = gl.RGBA;
+    const srcFormat = gl.RGBA;
+    const srcType = gl.UNSIGNED_BYTE;
+    const border = 0;
+    gl.bindTexture(gl.TEXTURE_2D, programInfo.texture);
+    gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, width, height, border, srcFormat, srcType, video);
+
+    if (redraw)
+        draw(gl);
 }
 
 function setRectangle(gl, x, y, width, height) {
