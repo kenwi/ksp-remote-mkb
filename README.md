@@ -1,2 +1,2 @@
 # ksp-remote-mkb
-Remote keboard and mouse over gRPC
+Remote monitor, keboard and mouse over gRPC
